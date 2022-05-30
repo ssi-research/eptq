@@ -1,0 +1,8 @@
+torch
+tensorflow<2.12
+tensorflow-model-optimization
+tqdm
+timm
+tfimm
+wandb
+model-compression-toolkit==1.9.1
