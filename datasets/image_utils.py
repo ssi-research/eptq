@@ -1,6 +1,17 @@
+import os
 from functools import partial
-
 import keras
+from constants import TRAIN_DIR
+
+
+def get_imagenet_folders_by_class(dir=TRAIN_DIR, class_numbers=None):
+    class_folders = [os.path.join(dir, f) for f in os.listdir(dir)]
+    if isinstance(class_numbers, int):
+        return [class_folders[class_numbers]]
+    elif isinstance(class_numbers, list):
+        return [class_folder for class_index, class_folder in enumerate(class_folders) if class_index in class_numbers]
+    else:
+        return class_folders
 
 
 def get_default_keras_model_preprocess():

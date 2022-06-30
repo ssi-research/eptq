@@ -1,4 +1,6 @@
 from keras.applications.mobilenet_v2 import MobileNetV2
+
+from datasets.image_utils import get_default_keras_data_preprocess
 from model_configs.model_config import TFModelConfig
 
 model_dictionary = {

@@ -1,6 +1,5 @@
 import argparse
 from constants import VAL_DIR, TRAIN_DIR, ONE_CLASS, DATASET_TYPES
-from datasets.gen_representative_datasets import get_representative_dataset
 from model_configs.model_dictionary import model_dictionary
 import model_compression_toolkit as mct
 
@@ -22,6 +21,8 @@ def argument_handler():
     parser.add_argument('--img_num', type=int, default=0)
     parser.add_argument('--class_num', type=int, default=0)
     parser.add_argument('--n_classes', type=int, default=1)
+    parser.add_argument('--random_seed', type=int, default=0)
+    parser.add_argument('--random_batch', action='store_true')
     args = parser.parse_args()
     return args
 
@@ -49,7 +50,7 @@ def main():
     #################################################
     # Get datasets
     #################################################
-    representative_data_gen = get_representative_dataset(args)
+    representative_data_gen = model_cfg.get_representative_dataset(args)
 
     #################################################
     # Run the Model Compression Toolkit
