@@ -182,6 +182,6 @@ class TFModelConfig(ModelConfig):
             iterator = self.dataset_iterator(dataset)
 
         def representative_dataset():
-            return next(iterator)
+            return [next(iterator)]
 
         return representative_dataset
