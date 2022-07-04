@@ -16,7 +16,7 @@ def get_target_kpi(args, model, representative_data_gen, core_config, tpc):
 
     target_weights_kpi = np.inf if args.weights_cr is None else BYTES * kpi_data.weights_memory / args.weights_cr
     target_activation_kpi = np.inf if args.activation_cr is None else BYTES * kpi_data.activation_memory / args.activation_cr
-    target_total_kpi = np.inf if args.total_cr is None else BYTES * kpi_data.activation_memory / args.total_cr
+    target_total_kpi = np.inf if args.total_cr is None else BYTES * kpi_data.total_memory / args.total_cr
 
     return KPI(weights_memory=target_weights_kpi,
                activation_memory=target_activation_kpi,
