@@ -35,10 +35,10 @@ def argument_handler():
                         help='The number of bits for weights quantization')
     parser.add_argument('--activation_nbits', type=int, default=8,
                         help='The number of bits for activation quantization')
-    parser.add_argument('--disable_activation_quantization', action='store_false', default=True,
-                        help='Flag that disables activation quantization')
-    parser.add_argument('--disable_weights_quantization', action='store_false', default=True,
+    parser.add_argument('--disable_weights_quantization', action='store_true', default=False,
                         help='Flag that disables weights quantization')
+    parser.add_argument('--disable_activation_quantization', action='store_true', default=False,
+                        help='Flag that disables activation quantization')
 
     parser.add_argument('--mixed_precision', action='store_true', default=False,
                         help='Enable Mixed-Precision quantization')
