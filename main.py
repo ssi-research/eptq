@@ -1,9 +1,9 @@
 import argparse
-from constants import VAL_DIR, TRAIN_DIR, ONE_CLASS, DATASET_TYPES, DEFAULT_MP_WEIGHTS_OPTIONS, \
-    DEFAULT_MP_ACTIVATION_OPTIONS
-from mixed_precision_utils import get_target_kpi
+from constants import VAL_DIR, TRAIN_DIR, ONE_CLASS, DATASET_TYPES, MP_PARTIAL_CANDIDATES
+from mixed_precision_utils import get_target_kpi, MP_BITWIDTH_OPTIONS_DICT
+from model_compression_toolkit import CoreConfig, QuantizationConfig
 from model_compression_toolkit.core.common.mixed_precision.mixed_precision_quantization_config import \
-    DEFAULT_MIXEDPRECISION_CONFIG
+    MixedPrecisionQuantizationConfigV2
 from model_configs.model_dictionary import model_dictionary
 import model_compression_toolkit as mct
 from target_platform.fix_bitwidth_tp_model import get_fixed_bitwidth_tp_model
@@ -31,6 +31,15 @@ def argument_handler():
     parser.add_argument('--random_seed', type=int, default=0)
     parser.add_argument('--random_batch', action='store_true')
 
+    parser.add_argument('--weights_nbits', type=int, default=8,
+                        help='The number of bits for weights quantization')
+    parser.add_argument('--activation_nbits', type=int, default=8,
+                        help='The number of bits for activation quantization')
+    parser.add_argument('--disable_activation_quantization', action='store_false', default=True,
+                        help='Flag that disables activation quantization')
+    parser.add_argument('--disable_weights_quantization', action='store_false', default=True,
+                        help='Flag that disables weights quantization')
+
     parser.add_argument('--mixed_precision', action='store_true', default=False,
                         help='Enable Mixed-Precision quantization')
     parser.add_argument('--weights_cr', type=float,
@@ -41,7 +50,8 @@ def argument_handler():
                         help='Total compression rate for mixed-precision')
     parser.add_argument('--num_samples_for_distance', type=int, default=32,
                         help='Number of samples in distance matrix for distance computation')
-
+    parser.add_argument('--use_grad_based_weights', action='store_true', default=False,
+                        help='A flag to enable gradient-based weights for distance metric weighted average')
 
     args = parser.parse_args()
     return args
@@ -73,43 +83,55 @@ def main():
     representative_data_gen = model_cfg.get_representative_dataset(args)
 
     #################################################
+    # Build quantization configuration
+    #################################################
+    # TODO: Need to edit the config or is default config is enough?
+    quant_config = QuantizationConfig()
+    mp_config = None
+    if args.mixed_precision:
+        # TODO: set distance_fn and after changing default in library
+        mp_config = MixedPrecisionQuantizationConfigV2(num_of_images=args.num_samples_for_distance,
+                                                       use_grad_based_weights=args.use_grad_based_weights)
+    core_config = CoreConfig(args.num_calibration_iter,
+                             quantization_config=quant_config,
+                             mixed_precision_config=mp_config)
+
+    #################################################
     # Run the Model Compression Toolkit
     #################################################
     # Get a TargetPlatformModel object that models the hardware for the quantized model inference.
     # The model determines the quantization methods to use during the MCT optimization process.
 
+    target_kpi = None
     if args.mixed_precision is True:
-        # TODO: currently running the old, non-experimental MP facade and kpi_data.
-        #  Change that after refactors in lib are done.
-        mixed_precision_options = [(w, a) for w in DEFAULT_MP_WEIGHTS_OPTIONS for a in DEFAULT_MP_ACTIVATION_OPTIONS]
-        # TODO: allow to get candidates from input (also enable quantization)?
-        target_platform_model = get_mixed_precision_tp_model(mixed_precision_options=mixed_precision_options)
+        # TODO: allow to choose different candidates
+        mixed_precision_options = [(w, a)
+                                   for w in MP_BITWIDTH_OPTIONS_DICT[MP_PARTIAL_CANDIDATES]
+                                   for a in MP_BITWIDTH_OPTIONS_DICT[MP_PARTIAL_CANDIDATES]]
+        target_platform_model = get_mixed_precision_tp_model(mixed_precision_options=mixed_precision_options,
+                                                             enable_weights_quantization=not args.disable_weights_quantization,
+                                                             enable_activation_quantization=not args.disable_activation_quantization)
         target_platform_cap = generate_keras_tpc(target_platform_model, name='mixed_precision_tpc')
 
-        # TODO: Change to core config when lob refactor is completed
-        mp_config = DEFAULT_MIXEDPRECISION_CONFIG
-        mp_config.num_of_images = args.num_samples_for_distance
-
-        target_kpi = get_target_kpi(args, model, representative_data_gen, target_platform_cap)
+        target_kpi = get_target_kpi(args, model, representative_data_gen, core_config, target_platform_cap)
         print(f'Target KPI: {target_kpi}')
 
-        quantized_model, quantization_info = \
-            mct.keras_post_training_quantization_mixed_precision(model,
-                                                                 representative_data_gen,
-                                                                 target_kpi=target_kpi,
-                                                                 quant_config=mp_config,
-                                                                 target_platform_capabilities=target_platform_cap,
-                                                                 n_iter=args.num_calibration_iter)
     else:
-        target_platform_model = get_fixed_bitwidth_tp_model()
         # TODO: maybe create a dictionary of TP models
         # TODO: allow to get config from input (bitwidth and enable quantization)?
+        target_platform_model = get_fixed_bitwidth_tp_model(weights_n_bits=args.weights_nbits,
+                                                            activation_n_bits=args.activation_nbits,
+                                                            enable_weights_quantization=not args.disable_weights_quantization,
+                                                            enable_activation_quantization=not args.disable_activation_quantization)
         target_platform_cap = generate_keras_tpc(target_platform_model, name='fixed_bitwidth_tpc')
 
-        quantized_model, quantization_info = mct.keras_post_training_quantization(model,
-                                                                                  representative_data_gen,
-                                                                                  target_platform_capabilities=target_platform_cap,
-                                                                                  n_iter=args.num_calibration_iter)
+    quantized_model, quantization_info = \
+        mct.keras_post_training_quantization_experimental(model,
+                                                          representative_data_gen,
+                                                          target_kpi=target_kpi,
+                                                          core_config=core_config,
+                                                          target_platform_capabilities=target_platform_cap)
+
     #################################################
     # Run accuracy evaluation for the quantized model
     #################################################

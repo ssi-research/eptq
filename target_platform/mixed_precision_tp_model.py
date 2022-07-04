@@ -1,7 +1,6 @@
-from typing import List, Tuple
+from typing import List
 
 import model_compression_toolkit as mct
-from constants import DEFAULT_QUANT_BITWIDTH, DEFAULT_MP_WEIGHTS_OPTIONS, DEFAULT_MP_ACTIVATION_OPTIONS
 from model_compression_toolkit.core.common.target_platform import OpQuantizationConfig, TargetPlatformModel
 
 tp = mct.target_platform
