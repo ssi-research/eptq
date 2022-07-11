@@ -57,7 +57,7 @@ def argument_handler():
     # Gumbel Rounding Config
     #####################################################################
     parser.add_argument('--gptq', action='store_true', default=False,
-                        help='Enable Mixed-Precision quantization')
+                        help='Enable GPTQ quantization')
     parser.add_argument('--gptq_num_calibration_iter', type=int, default=20000)
     parser.add_argument('--ste_rounding', action='store_true', default=False)
     parser.add_argument('--sam_optimization', action='store_true', default=False)
@@ -67,6 +67,8 @@ def argument_handler():
     parser.add_argument('--quantization_parameters_learning_activation', action='store_true', default=False)
     parser.add_argument('--rho', type=float, default=0.01)
     parser.add_argument('--gamma_temperature', type=float, default=0.01)
+    parser.add_argument('--lr', type=float, default=2e-4,
+                        help='GPTQ learning rate')
     # Loss
     parser.add_argument('--hessian_weighting', action='store_true', default=False)
     parser.add_argument('--bn_p_norm', action='store_true', default=False)
@@ -120,20 +122,32 @@ def main():
     #################################################
     # Get a TargetPlatformModel object that models the hardware for the quantized model inference.
     # The model determines the quantization methods to use during the MCT optimization process.
-    target_platform_cap = quantization_config.build_target_platform_model(args.mixed_precision, args.activation_nbits,
-                                                                          args.weights_nbits,
-                                                                          args.disable_weights_quantization,
-                                                                          args.disable_activation_quantization)
+    target_platform_cap = quantization_config.build_target_platform_capabilities(args.mixed_precision, args.activation_nbits,
+                                                                                 args.weights_nbits,
+                                                                                 args.disable_weights_quantization,
+                                                                                 args.disable_activation_quantization)
+
     target_kpi = quantization_config.build_target_kpi(args.weights_cr, args.activation_cr, args.total_cr,
                                                       args.mixed_precision, model, representative_data_gen, core_config,
                                                       target_platform_cap)
 
-    quantized_model, quantization_info = \
-        mct.keras_post_training_quantization_experimental(model,
-                                                          representative_data_gen,
-                                                          target_kpi=target_kpi,
-                                                          core_config=core_config,
-                                                          target_platform_capabilities=target_platform_cap)
+    if args.gptq:
+        gptq_config = quantization_config.build_gptq_config(args)
+
+        quantized_model, quantization_info = \
+            mct.keras_gradient_post_training_quantization_experimental(model,
+                                                                       representative_data_gen,
+                                                                       gptq_config=gptq_config,
+                                                                       target_kpi=target_kpi,
+                                                                       core_config=core_config,
+                                                                       target_platform_capabilities=target_platform_cap)
+    else:
+        quantized_model, quantization_info = \
+            mct.keras_post_training_quantization_experimental(model,
+                                                              representative_data_gen,
+                                                              target_kpi=target_kpi,
+                                                              core_config=core_config,
+                                                              target_platform_capabilities=target_platform_cap)
 
     #################################################
     # Run accuracy evaluation for the quantized model
