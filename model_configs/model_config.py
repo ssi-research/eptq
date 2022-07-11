@@ -1,4 +1,5 @@
 import tensorflow as tf
+import tfimm
 from tensorflow import keras
 
 from datasets.image_utils import get_default_keras_model_preprocess, keras_model_accuracy_evaluation, \
@@ -12,17 +13,31 @@ class ModelParameters(object):
                  preprocess=get_default_keras_model_preprocess(),
                  evaluation_function=keras_model_accuracy_evaluation,
                  model_params={},
+                 is_tfimm: bool = False,
                  ):
         self.model = model
         self.float_accuracy = float_accuracy
         self.preprocess = preprocess
         self.evaluation_function = evaluation_function
         self.model_params = model_params
+        self.is_tfimm = is_tfimm
 
     def get_float_accuracy(self):
         return self.float_accuracy
 
     def get_model(self):
+        if self.is_tfimm:
+            from keras import Input
+            model = tfimm.create_model(self.model, True)
+            p = tfimm.create_preprocessing(self.model, dtype="float32")
+
+            def _preprocess(in_x, in_y):
+                return p(in_x), in_y
+
+            self.preprocess = [_preprocess]
+            x = Input((224, 224, 3), name="input")
+            y = model(x)
+            return tf.keras.Model(inputs=x, outputs=y)
         if isinstance(self.model, str):
             return tf.keras.models.load_model(self.model, compile=False)
         else:

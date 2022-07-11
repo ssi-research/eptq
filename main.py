@@ -10,19 +10,26 @@ PROJECT_NAME = 'gumbel-rounding'
 
 def argument_handler():
     parser = argparse.ArgumentParser()
+    #####################################################################
+    # General Config
+    #####################################################################
     parser.add_argument('--model_name', '-m', type=str, required=True,
                         help='The name of the model to run')
     parser.add_argument('--project_name', type=str, default=PROJECT_NAME)
+    parser.add_argument('--float_evaluation', action='store_true')
+    parser.add_argument('--random_seed', type=int, default=0)
+    #####################################################################
+    # Dataset Config
+    #####################################################################
     parser.add_argument('--val_dataset_folder', type=str, default=VAL_DIR)
     parser.add_argument('--representative_dataset_folder', type=str, default=TRAIN_DIR)
     parser.add_argument('--batch_size', type=int, default=50)
     parser.add_argument('--image_size', type=int, default=224)
-    parser.add_argument('--num_calibration_iter', type=int, default=1)
-    parser.add_argument('--float_evaluation', action='store_true')
-    parser.add_argument('--n_images', type=int, default=1)
-
-    parser.add_argument('--random_seed', type=int, default=0)
-
+    parser.add_argument('--n_images', type=int, default=1024)
+    #####################################################################
+    # MCT Config
+    #####################################################################
+    parser.add_argument('--num_calibration_iter', type=int, default=100)
     parser.add_argument('--weights_nbits', type=int, default=8,
                         help='The number of bits for weights quantization')
     parser.add_argument('--activation_nbits', type=int, default=8,
@@ -31,7 +38,9 @@ def argument_handler():
                         help='Flag that disables weights quantization')
     parser.add_argument('--disable_activation_quantization', action='store_true', default=False,
                         help='Flag that disables activation quantization')
-
+    #####################################################################
+    # Mixed Precision Config
+    #####################################################################
     parser.add_argument('--mixed_precision', action='store_true', default=False,
                         help='Enable Mixed-Precision quantization')
     parser.add_argument('--weights_cr', type=float,
@@ -44,6 +53,24 @@ def argument_handler():
                         help='Number of samples in distance matrix for distance computation')
     parser.add_argument('--use_grad_based_weights', action='store_true', default=False,
                         help='A flag to enable gradient-based weights for distance metric weighted average')
+    #####################################################################
+    # Gumbel Rounding Config
+    #####################################################################
+    parser.add_argument('--gptq', action='store_true', default=False,
+                        help='Enable Mixed-Precision quantization')
+    parser.add_argument('--gptq_num_calibration_iter', type=int, default=20000)
+    parser.add_argument('--ste_rounding', action='store_true', default=False)
+    parser.add_argument('--sam_optimization', action='store_true', default=False)
+    parser.add_argument('--temperature_learning', action='store_true', default=False)
+    parser.add_argument('--bias_learning', action='store_true', default=False)
+    parser.add_argument('--quantization_parameters_learning_weights', action='store_true', default=False)
+    parser.add_argument('--quantization_parameters_learning_activation', action='store_true', default=False)
+    parser.add_argument('--rho', type=float, default=0.01)
+    parser.add_argument('--gamma_temperature', type=float, default=0.01)
+    # Loss
+    parser.add_argument('--hessian_weighting', action='store_true', default=False)
+    parser.add_argument('--bn_p_norm', action='store_true', default=False)
+    parser.add_argument('--activation_bias', action='store_true', default=False)
 
     args = parser.parse_args()
     return args
