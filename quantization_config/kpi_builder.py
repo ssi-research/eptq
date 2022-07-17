@@ -25,3 +25,13 @@ def get_target_kpi(weights_cr, activation_cr, total_cr, model, representative_da
     return KPI(weights_memory=target_weights_kpi,
                activation_memory=target_activation_kpi,
                total_memory=target_total_kpi)
+
+
+def kpi2dict(in_kpi: KPI) -> dict:
+    if in_kpi is None:
+        return {"weights_memory": None,
+                "activation_memory": None,
+                "total_memory": None}
+    return {"weights_memory": in_kpi.weights_memory,
+            "activation_memory": in_kpi.activation_memory,
+            "total_memory": in_kpi.total_memory}

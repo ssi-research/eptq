@@ -3,3 +3,4 @@ matplotlib
 timm
 tfimm
 torch
+wandb

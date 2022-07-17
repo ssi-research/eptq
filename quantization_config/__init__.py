@@ -1,4 +1,4 @@
 from quantization_config.tpc_builder import build_target_platform_capabilities
-from quantization_config.kpi_builder import build_target_kpi
+from quantization_config.kpi_builder import build_target_kpi, kpi2dict
 from quantization_config.quantization_config_builder import core_config_builder
 from quantization_config.gptq_config_builder import build_gptq_config

@@ -1,4 +1,5 @@
 import argparse
+import wandb
 from constants import VAL_DIR, TRAIN_DIR
 
 from models.model_dictionary import model_dictionary
@@ -94,6 +95,8 @@ def get_float_result(in_args, in_model_cfg, in_model, in_val_dataset) -> float:
 
 def main():
     args = argument_handler()
+    wandb.init(project=PROJECT_NAME)
+    wandb.config.update(args)
 
     #################################################
     # Build quantization configuration
@@ -111,12 +114,14 @@ def main():
                                                                                  args.weights_nbits,
                                                                                  args.disable_weights_quantization,
                                                                                  args.disable_activation_quantization)
-    print(target_platform_cap)
     #################################################
     # Generate Model
     #################################################
     model_cfg = model_dictionary.get(args.model_name)
     model = model_cfg.get_model()
+    #################################################
+    # Floating-point accuracy
+    #################################################
     val_dataset = model_cfg.get_validation_dataset(
         dir_path=args.val_dataset_folder,
         batch_size=args.batch_size,
@@ -158,7 +163,9 @@ def main():
     # Run accuracy evaluation for the quantized model
     #################################################
     quant_result = model_cfg.evaluation_function(quantized_model, val_dataset)
-
+    wandb.log({"quantized_results": quant_result * 100,
+               "float_results": float_result * 100,
+               **quantization_config.kpi2dict(target_kpi)})
     print(f'Accuracy of quantized model: {quant_result * 100} (float model: {float_result * 100})')
 
 

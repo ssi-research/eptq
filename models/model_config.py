@@ -1,11 +1,11 @@
 import tensorflow as tf
-import tfimm
 import timm.data
 import torch
 from tensorflow import keras
 from datasets.image_utils import get_default_keras_model_preprocess, keras_model_accuracy_evaluation, \
     get_default_keras_data_preprocess
 from models.tfimm_modified.load_weight_updated import load_pytorch_weights_in_tf2_model
+from torch.utils.data import RandomSampler, Subset
 
 
 class ModelParameters(object):
@@ -129,6 +129,7 @@ class ModelParameters(object):
                 return [next(iterator)]
         else:
             ds = timm.data.create_dataset("", in_dir)
+            ds = Subset(ds, list(np.random.randint(0, len(ds) + 1, num_images)))
             iterator = iter(timm.data.create_loader(ds, image_size, batch_size, use_prefetcher=False))
 
             def representative_dataset():
