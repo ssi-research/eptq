@@ -2,3 +2,4 @@ tqdm
 matplotlib
 timm
 tfimm
+torch

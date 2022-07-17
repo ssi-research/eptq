@@ -1,7 +1,7 @@
 import argparse
 from constants import VAL_DIR, TRAIN_DIR
 
-from model_configs.model_dictionary import model_dictionary
+from models.model_dictionary import model_dictionary
 import model_compression_toolkit as mct
 import quantization_config
 
@@ -29,8 +29,8 @@ def argument_handler():
     #####################################################################
     # MCT Config
     #####################################################################
-    parser.add_argument('--num_calibration_iter', type=int, default=100)
-    parser.add_argument('--weights_nbits', type=int, default=8,
+    parser.add_argument('--num_calibration_iter', type=int, default=1)
+    parser.add_argument('--weights_nbits', type=int, default=4,
                         help='The number of bits for weights quantization')
     parser.add_argument('--activation_nbits', type=int, default=8,
                         help='The number of bits for activation quantization')
@@ -94,6 +94,27 @@ def get_float_result(in_args, in_model_cfg, in_model, in_val_dataset) -> float:
 
 def main():
     args = argument_handler()
+
+    #################################################
+    # Build quantization configuration
+    #################################################
+    core_config = quantization_config.core_config_builder(args.mixed_precision, args.num_calibration_iter,
+                                                          args.num_samples_for_distance, args.use_grad_based_weights)
+
+    #################################################
+    # Run the Model Compression Toolkit
+    #################################################
+    # Get a TargetPlatformModel object that models the hardware for the quantized model inference.
+    # The model determines the quantization methods to use during the MCT optimization process.
+    target_platform_cap = quantization_config.build_target_platform_capabilities(args.mixed_precision,
+                                                                                 args.activation_nbits,
+                                                                                 args.weights_nbits,
+                                                                                 args.disable_weights_quantization,
+                                                                                 args.disable_activation_quantization)
+    print(target_platform_cap)
+    #################################################
+    # Generate Model
+    #################################################
     model_cfg = model_dictionary.get(args.model_name)
     model = model_cfg.get_model()
     val_dataset = model_cfg.get_validation_dataset(
@@ -110,22 +131,6 @@ def main():
         n_images=args.n_images,
         image_size=args.image_size,
         preprocessing=None, seed=args.random_seed)
-
-    #################################################
-    # Build quantization configuration
-    #################################################
-    core_config = quantization_config.core_config_builder(args.mixed_precision, args.num_calibration_iter,
-                                                          args.num_samples_for_distance, args.use_grad_based_weights)
-
-    #################################################
-    # Run the Model Compression Toolkit
-    #################################################
-    # Get a TargetPlatformModel object that models the hardware for the quantized model inference.
-    # The model determines the quantization methods to use during the MCT optimization process.
-    target_platform_cap = quantization_config.build_target_platform_capabilities(args.mixed_precision, args.activation_nbits,
-                                                                                 args.weights_nbits,
-                                                                                 args.disable_weights_quantization,
-                                                                                 args.disable_activation_quantization)
 
     target_kpi = quantization_config.build_target_kpi(args.weights_cr, args.activation_cr, args.total_cr,
                                                       args.mixed_precision, model, representative_data_gen, core_config,

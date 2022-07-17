@@ -26,10 +26,10 @@ def get_mixed_precision_tp_model(mixed_precision_options,
     max_weights_bitwidth, max_activation_bitwidth = mixed_precision_options[0]
 
     default_config = tp.OpQuantizationConfig(
-        activation_quantization_method=tp.QuantizationMethod.POWER_OF_TWO,
-        weights_quantization_method=tp.QuantizationMethod.POWER_OF_TWO,
-        activation_n_bits=max_weights_bitwidth,
-        weights_n_bits=max_activation_bitwidth,
+        activation_quantization_method=tp.QuantizationMethod.UNIFORM,
+        weights_quantization_method=tp.QuantizationMethod.UNIFORM,
+        weights_n_bits=max_weights_bitwidth,
+        activation_n_bits=max_activation_bitwidth,
         weights_per_channel_threshold=True,
         enable_weights_quantization=enable_weights_quantization,
         enable_activation_quantization=enable_activation_quantization,
@@ -39,10 +39,10 @@ def get_mixed_precision_tp_model(mixed_precision_options,
         weights_multiplier_nbits=None)
 
     no_quant_config = tp.OpQuantizationConfig(
-        activation_quantization_method=tp.QuantizationMethod.POWER_OF_TWO,
-        weights_quantization_method=tp.QuantizationMethod.POWER_OF_TWO,
+        activation_quantization_method=tp.QuantizationMethod.UNIFORM,
+        weights_quantization_method=tp.QuantizationMethod.UNIFORM,
         activation_n_bits=max_activation_bitwidth,  # does not affect quantization
-        weights_n_bits=max_activation_bitwidth,  # does not affect quantization
+        weights_n_bits=max_weights_bitwidth,  # does not affect quantization
         weights_per_channel_threshold=True,
         enable_weights_quantization=False,
         enable_activation_quantization=False,

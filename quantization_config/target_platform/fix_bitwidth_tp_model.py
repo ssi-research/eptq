@@ -20,10 +20,10 @@ def get_fixed_bitwidth_tp_model(weights_n_bits=DEFAULT_QUANT_BITWIDTH,
 
     """
     default_config = tp.OpQuantizationConfig(
-        activation_quantization_method=tp.QuantizationMethod.POWER_OF_TWO,
-        weights_quantization_method=tp.QuantizationMethod.POWER_OF_TWO,
-        activation_n_bits=weights_n_bits,
-        weights_n_bits=activation_n_bits,
+        activation_quantization_method=tp.QuantizationMethod.UNIFORM,
+        weights_quantization_method=tp.QuantizationMethod.UNIFORM,
+        weights_n_bits=weights_n_bits,
+        activation_n_bits=activation_n_bits,
         weights_per_channel_threshold=True,
         enable_weights_quantization=enable_weights_quantization,
         enable_activation_quantization=enable_activation_quantization,
@@ -33,10 +33,10 @@ def get_fixed_bitwidth_tp_model(weights_n_bits=DEFAULT_QUANT_BITWIDTH,
         weights_multiplier_nbits=None)
 
     no_quant_config = tp.OpQuantizationConfig(
-        activation_quantization_method=tp.QuantizationMethod.POWER_OF_TWO,
-        weights_quantization_method=tp.QuantizationMethod.POWER_OF_TWO,
-        activation_n_bits=weights_n_bits,  # does not affect quantization
-        weights_n_bits=activation_n_bits,  # does not affect quantization
+        activation_quantization_method=tp.QuantizationMethod.UNIFORM,
+        weights_quantization_method=tp.QuantizationMethod.UNIFORM,
+        weights_n_bits=weights_n_bits,  # does not affect quantization
+        activation_n_bits=activation_n_bits,  # does not affect quantization
         weights_per_channel_threshold=True,
         enable_weights_quantization=False,
         enable_activation_quantization=False,
