@@ -278,6 +278,7 @@ class MDepthwiseSeparableConv(object):
             nb_groups=cfg.nb_groups,
             name=f"{name}.conv_pw",
         )
+        print(name)
         self.bn2 = norm_layer(name=f"{name}.bn2")
         self.act2 = act_layer() if cfg.pw_act else None
         self.drop_path = None

@@ -1,11 +1,13 @@
 import tensorflow as tf
-import timm.data
+import timm
 import torch
 from tensorflow import keras
 from datasets.image_utils import get_default_keras_model_preprocess, keras_model_accuracy_evaluation, \
     get_default_keras_data_preprocess
 from models.tfimm_modified.load_weight_updated import load_pytorch_weights_in_tf2_model
-from torch.utils.data import RandomSampler, Subset
+
+# from torch.utils.data import Subset, SubsetRandomSampler
+# import numpy as np
 
 
 class ModelParameters(object):
@@ -41,20 +43,7 @@ class ModelParameters(object):
             pt_model = timm.create_model(cfg.url.split("]")[-1], pretrained=True)
             pt_state_dict = pt_model.state_dict()
             load_pytorch_weights_in_tf2_model(model, pt_state_dict)
-            # from keras import Input
-            # model = tfimm.create_model(self.model, pretrained=True)
-            # p = tfimm.create_preprocessing(self.model, dtype="float32")
-            #
-            # # self.resize_to = [int(s * (1 / 0.875)) for s in self.resize_to]
-            #
-            # def _preprocess(in_x, in_y):
-            #     # _x = tf.image.central_crop(in_x, 0.875)
-            #     return p(in_x), in_y
-            #
-            # self.preprocess = [_preprocess]
-            # x = Input(self.image_size, name="input")
-            # y = model(x)
-            # return tf.keras.Model(inputs=x, outputs=y)
+
             return model
         if isinstance(self.model, str):
             return tf.keras.models.load_model(self.model, compile=False)
@@ -129,7 +118,7 @@ class ModelParameters(object):
                 return [next(iterator)]
         else:
             ds = timm.data.create_dataset("", in_dir)
-            ds = Subset(ds, list(np.random.randint(0, len(ds) + 1, num_images)))
+            # ds = Subset(ds, list(np.random.randint(0, len(ds) + 1, num_images)))
             iterator = iter(timm.data.create_loader(ds, image_size, batch_size, use_prefetcher=False))
 
             def representative_dataset():

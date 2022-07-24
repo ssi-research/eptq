@@ -85,6 +85,7 @@ class EfficientNetBuilder:
                 # TODO: Not implemented yet
                 _log(f"  CondConvResidual {block_idx}, Args: {str(block_args)}")
                 block = CondConvResidual(cfg=block_args, name=block_name)  # noqa: F821
+                raise NotImplementedError
             else:
                 _log(f"  InvertedResidual {block_idx}, Args: {str(block_args)}")
                 block = MInvertedResidual(cfg=block_args, name=block_name)
@@ -94,9 +95,11 @@ class EfficientNetBuilder:
         elif block_type == "er":
             _log(f"  EdgeResidual {block_idx}, Args: {str(block_args)}")
             block = EdgeResidual(cfg=block_args, name=block_name)
+            raise NotImplementedError
         elif block_type == "cn":
             _log(f"  ConvBnAct {block_idx}, Args: {str(block_args)}")
             block = ConvBnAct(cfg=block_args, name=block_name)  # noqa: F821
+            raise NotImplementedError
         else:
             raise ValueError(f"Unknown block type {block_type} while building model.")
 
