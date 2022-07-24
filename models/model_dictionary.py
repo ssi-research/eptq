@@ -12,7 +12,7 @@ model_dictionary = {
     ),
     'resnet18': ModelParameters(
         model=resnet18,
-        float_accuracy=0.7185,
+        float_accuracy=69.76,
         model_params={'weights': 'imagenet'},
         is_tfimm=True,
         evaluation_function=keras_model_accuracy_evaluation_timm

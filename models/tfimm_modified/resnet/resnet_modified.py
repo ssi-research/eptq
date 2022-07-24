@@ -34,8 +34,8 @@ import tensorflow as tf
 
 from tfimm.layers import (
     BlurPool2D,
-    ClassifierHead,
-    DropPath,
+    # ClassifierHead,
+    # DropPath,
     act_layer_factory,
     attn_layer_factory,
     norm_layer_factory,
@@ -50,6 +50,10 @@ __all__ = ["ResNetConfig", "MBasicBlock"]
 
 # TODO: Implement DropBlock, drop_block_rate in timm
 #       See: https://arxiv.org/pdf/1810.12890.pdf)
+from models.tfimm_modified.layers.classifier import ClassifierHead
+from models.tfimm_modified.layers.drop import DropPath
+
+
 @dataclass
 class ResNetConfig(ModelConfig):
     """
