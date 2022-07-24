@@ -1,5 +1,6 @@
 import argparse
 import wandb
+import utils
 from constants import VAL_DIR, TRAIN_DIR
 
 from models.model_dictionary import model_dictionary
@@ -24,13 +25,13 @@ def argument_handler():
     #####################################################################
     parser.add_argument('--val_dataset_folder', type=str, default=VAL_DIR)
     parser.add_argument('--representative_dataset_folder', type=str, default=TRAIN_DIR)
-    parser.add_argument('--batch_size', type=int, default=50)
+    parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--image_size', type=int, default=224)
     parser.add_argument('--n_images', type=int, default=1024)
     #####################################################################
     # MCT Config
     #####################################################################
-    parser.add_argument('--num_calibration_iter', type=int, default=1)
+    parser.add_argument('--num_calibration_iter', type=int, default=10)
     parser.add_argument('--weights_nbits', type=int, default=4,
                         help='The number of bits for weights quantization')
     parser.add_argument('--activation_nbits', type=int, default=8,
@@ -68,7 +69,7 @@ def argument_handler():
     parser.add_argument('--quantization_parameters_learning_activation', action='store_true', default=False)
     parser.add_argument('--rho', type=float, default=0.01)
     parser.add_argument('--gamma_temperature', type=float, default=0.01)
-    parser.add_argument('--lr', type=float, default=2e-4,
+    parser.add_argument('--lr', type=float, default=0.2,
                         help='GPTQ learning rate')
     # Loss
     parser.add_argument('--hessian_weighting', action='store_true', default=False)
@@ -97,6 +98,7 @@ def main():
     args = argument_handler()
     wandb.init(project=PROJECT_NAME)
     wandb.config.update(args)
+    utils.set_seed(args.random_seed)
 
     #################################################
     # Build quantization configuration
