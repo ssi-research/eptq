@@ -11,7 +11,7 @@ from tfimm.models import ModelConfig
 
 from models.tfimm_modified.create_layers_modified import create_conv2d
 from models.tfimm_modified.resnet.resnet_blocks import ResNetConv1Block, StemPoolBlock, ReplacedStemPoolBlock, \
-    ResNetBasicBlock, DownSampleAvg, DownSampleConv
+    ResNetBasicBlock, DownSampleAvg, DownSampleConv, StemPoolWithAABlock
 
 # Model registry will add each entrypoint fn to this
 __all__ = ['ResNet18Config']
@@ -36,7 +36,7 @@ class ResNet18Config(ModelConfig):
     down_kernel_size: int = 1
     avg_down: bool = False
     zero_init_last: bool = True
-    block_args: Dict[str, Any] = field(default_factory=lambda: {'attn_type': 'se'})  # TODO: block argument, are there any others that we need to set?
+    block_args: Dict[str, Any] = field(default_factory=lambda: {'attn_layer': 'se'})  # TODO: block argument, are there any others that we need to set?
 
     # Regularization
     drop_rate: float = 0.0
@@ -70,7 +70,7 @@ def generate_resnet18_net_keras(cfg: ResNet18Config, **kwargs):
             kernel_size=7,
             strides=2,
             # padding=3,
-            padding='valid',
+            padding='symmetric',
             use_bias=False,
             name="conv1"
         )
@@ -86,10 +86,9 @@ def generate_resnet18_net_keras(cfg: ResNet18Config, **kwargs):
             if issubclass(cfg.aa_layer, tf.keras.layers.AveragePooling2D):
                 stem_pool = cfg.aa_layer(2)
             else:
-                stem_pool = StemPoolBlock(cfg.aa_layer, inplanes)
+                stem_pool = StemPoolWithAABlock(cfg.aa_layer, inplanes)
         else:
-            # stem_pool = tf.keras.layers.MaxPool2D(pool_size=(3, 3), strides=2, padding=1)
-            stem_pool = tf.keras.layers.MaxPool2D(pool_size=(3, 3), strides=2, padding='valid')
+            stem_pool = StemPoolBlock(inplanes)
 
     # Feature Blocks
     channels = [64, 128, 256, 512]
@@ -101,7 +100,7 @@ def generate_resnet18_net_keras(cfg: ResNet18Config, **kwargs):
         aa_layer=cfg.aa_layer, drop_block_rate=cfg.drop_block_rate, drop_path_rate=cfg.drop_path_rate, **cfg.block_args)
 
     # Head (Pooling and Classifier)
-    num_features = 512 * stage_block.expansion
+    num_features = 512 * stage_block.expansion  # TODO: where should we use this?
 
     global_pool = tf.keras.layers.GlobalAveragePooling2D()
     flatten = tf.keras.layers.Flatten()
@@ -123,6 +122,7 @@ def generate_resnet18_net_keras(cfg: ResNet18Config, **kwargs):
 
     for block_name, blocks in stage_modules:
         for block in blocks:
+            print(block_name)
             x = block(x)
 
     x = global_pool(x)
@@ -172,9 +172,10 @@ def _make_blocks(
             downsample = downsample if block_idx == 0 else None
             stride = stride if block_idx == 0 else 1
             block_dpr = drop_path_rate * net_block_idx / (net_num_blocks - 1)  # stochastic depth linear decay rule
-            blocks.append(block_fn(
-                inplanes, planes, stride, downsample, first_dilation=prev_dilation,
-                drop_path=DropPath(block_dpr) if block_dpr > 0. else None, **block_kwargs))
+            blocks.append(
+                block_fn(inplanes, planes, stride, downsample, first_dilation=prev_dilation,
+                         drop_path=DropPath(block_dpr) if block_dpr > 0. else None, **block_kwargs)
+            )
             prev_dilation = dilation
             inplanes = planes * block_fn.expansion
             net_block_idx += 1

@@ -55,7 +55,7 @@ def create_conv2d(
 
 def create_aa(aa_layer, channels, stride=2, enable=True):
     if not aa_layer or not enable:
-        return tf.identity()
+        return tf.keras.layers.Activation("linear")  # identity layer
     return aa_layer(stride) if issubclass(aa_layer, tf.keras.layers.AveragePooling2D) \
         else aa_layer(channels=channels, stride=stride)
 
