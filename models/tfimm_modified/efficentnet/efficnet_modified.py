@@ -97,8 +97,6 @@ from tfimm.architectures.efficientnet_builder import (
     decode_architecture,
     round_channels,
 )
-
-from models.tfimm_modified.create_layers_modified import create_conv2d
 from models.tfimm_modified.efficentnet.efficientnet_builder import EfficientNetBuilder
 from tfimm.layers import act_layer_factory, norm_layer_factory
 from tfimm.models import ModelConfig
@@ -106,6 +104,8 @@ from tfimm.utils import (
     IMAGENET_DEFAULT_MEAN,
     IMAGENET_DEFAULT_STD,
 )
+
+from models.tfimm_modified.efficentnet.efficientnet_blocks import create_conv2d
 
 # Model registry will add each entrypoint fn to this
 __all__ = ["EfficientNetConfig"]
