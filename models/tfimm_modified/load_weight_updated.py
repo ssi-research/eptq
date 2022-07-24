@@ -206,8 +206,8 @@ def load_pytorch_weights_in_tf2_model(
 
 
 if __name__ == '__main__':
-    # model_fn, cfg = mobilenet_v2_100_m()
-    model_fn, cfg = resnet18()
+    model_fn, cfg = mobilenet_v2_100_m()
+    # model_fn, cfg = resnet18()
     model = model_fn(cfg)
 
     pt_model = timm.create_model(cfg.url.split("]")[-1], pretrained=True)
