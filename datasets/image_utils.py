@@ -3,6 +3,18 @@ import keras
 import torch
 import numpy as np
 from tqdm import tqdm
+import tensorflow as tf
+from torchvision.transforms import transforms
+
+
+def get_default_pytorch_preprocess():
+    return transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                 std=[0.229, 0.224, 0.225]),
+        ])
 
 
 def get_default_keras_model_preprocess():
@@ -13,8 +25,10 @@ def get_default_keras_model_preprocess():
 
 
 def get_default_keras_data_preprocess(image_size):
-    return [partial(keras.preprocessing.image.smart_resize, size=(image_size, image_size)),
+    return [tf.keras.layers.Resizing(image_size, image_size),
             partial(keras.applications.imagenet_utils.preprocess_input, mode='tf')]
+    # return [partial(keras.preprocessing.image.smart_resize, size=(image_size, image_size)),
+    #         partial(keras.applications.imagenet_utils.preprocess_input, mode='tf')]
 
 
 def keras_model_accuracy_evaluation(model, dataset):
@@ -28,7 +42,7 @@ def keras_model_accuracy_evaluation_timm(model, dataset):
     total = 0
     count = 0
     for x, y in tqdm(dataset):
-        x = torch.permute(x, [0, 2, 3, 1]).cpu().numpy()
+        x = torch.permute(x, [0, 2, 3, 1]).detach().cpu().numpy()
         y_hat = model.predict(x)
         y = y.cpu().numpy()
 
