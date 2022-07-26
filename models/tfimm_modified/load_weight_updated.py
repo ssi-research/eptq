@@ -7,7 +7,7 @@ import re
 import numpy
 from tensorflow.python.keras import backend as K
 
-from models.tfimm_modified.resnet.resnet_modified import resnet18
+from models.tfimm_modified.resnet.resnet_modified import resnet18, resnet50
 
 logger = logging.getLogger(__name__)
 
@@ -208,6 +208,7 @@ def load_pytorch_weights_in_tf2_model(
 if __name__ == '__main__':
     model_fn, cfg = mobilenet_v2_100_m()
     # model_fn, cfg = resnet18()
+    # model_fn, cfg = resnet50()
     model = model_fn(cfg)
 
     pt_model = timm.create_model(cfg.url.split("]")[-1], pretrained=True)
