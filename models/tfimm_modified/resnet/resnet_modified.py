@@ -287,7 +287,7 @@ class MBasicBlock(object):
 #         return x
 
 
-class Bottleneck(tf.keras.layers.Layer):
+class MBottleneck(object):
     expansion = 4
 
     def __init__(
@@ -299,7 +299,7 @@ class Bottleneck(tf.keras.layers.Layer):
         downsample_layer,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        self.name = kwargs['name']
 
         self.cfg = cfg
         self.downsample_layer = downsample_layer
@@ -319,9 +319,9 @@ class Bottleneck(tf.keras.layers.Layer):
             filters=first_planes,
             kernel_size=1,
             use_bias=False,
-            name="conv1",
+            name=f"{self.name}.conv1",
         )
-        self.bn1 = self.norm_layer(name="bn1")
+        self.bn1 = self.norm_layer(name=f"{self.name}.bn1")
         self.act1 = self.act_layer()
 
         self.pad2 = tf.keras.layers.ZeroPadding2D(padding=1)
@@ -332,9 +332,9 @@ class Bottleneck(tf.keras.layers.Layer):
             strides=1 if use_aa else stride,
             groups=cfg.cardinality,
             use_bias=False,
-            name="conv2",
+            name=f"{self.name}.conv2",
         )
-        self.bn2 = self.norm_layer(name="bn2")
+        self.bn2 = self.norm_layer(name=f"{self.name}.bn2")
         self.act2 = self.act_layer()
         self.aa = BlurPool2D(stride=stride) if use_aa else None
 
@@ -342,7 +342,7 @@ class Bottleneck(tf.keras.layers.Layer):
             filters=out_planes,
             kernel_size=1,
             use_bias=False,
-            name="conv3",
+            name=f"{self.name}.conv3",
         )
         initializer = "zeros" if cfg.zero_init_last_bn else "ones"
         if cfg.norm_layer == "batch_norm":
@@ -350,44 +350,147 @@ class Bottleneck(tf.keras.layers.Layer):
             self.bn3 = self.norm_layer(
                 gamma_initializer=initializer,
                 moving_variance_initializer=initializer,
-                name="bn3",
+                name=f"{self.name}.bn3",
             )
         else:
-            self.bn3 = self.norm_layer(gamma_initializer=initializer, name="bn3")
+            self.bn3 = self.norm_layer(gamma_initializer=initializer, name=f"{self.name}.bn3")
         if cfg.attn_layer == "se":
-            self.se = self.attn_layer(rd_ratio=cfg.se_ratio, name="se")
+            self.se = self.attn_layer(rd_ratio=cfg.se_ratio, name=f"{self.name}.se")
         else:
-            self.se = self.attn_layer(name="se")
+            self.se = self.attn_layer(name=f"{self.name}.se")
         self.drop_path = DropPath(drop_prob=drop_path_rate)
         self.act3 = self.act_layer()
 
-    def call(self, x, training=False):
+    def __call__(self, x: tf.Tensor):
         shortcut = x
 
         x = self.conv1(x)
-        x = self.bn1(x, training=training)
+        x = self.bn1(x)
         x = self.act1(x)
 
         x = self.pad2(x)
         x = self.conv2(x)
-        x = self.bn2(x, training=training)
+        x = self.bn2(x)
         x = self.act2(x)
         if self.aa is not None:
-            x = self.aa(x, training=training)
+            x = self.aa(x)
 
         x = self.conv3(x)
-        x = self.bn3(x, training=training)
+        x = self.bn3(x)
 
-        x = self.se(x, training=training)
+        x = self.se(x)
 
-        x = self.drop_path(x, training=training)
+        x = self.drop_path(x)
 
         if self.downsample_layer is not None:
-            shortcut = self.downsample_layer(shortcut, training=training)
+            shortcut = self.downsample_layer(shortcut)
         x += shortcut
         x = self.act3(x)
 
         return x
+
+
+# class Bottleneck(tf.keras.layers.Layer):
+#     expansion = 4
+#
+#     def __init__(
+#         self,
+#         cfg: ResNetConfig,
+#         nb_channels: int,
+#         stride: int,
+#         drop_path_rate: float,
+#         downsample_layer,
+#         **kwargs,
+#     ):
+#         super().__init__(**kwargs)
+#
+#         self.cfg = cfg
+#         self.downsample_layer = downsample_layer
+#         self.act_layer = act_layer_factory(cfg.act_layer)
+#         self.norm_layer = norm_layer_factory(cfg.norm_layer)
+#         self.attn_layer = attn_layer_factory(cfg.attn_layer)
+#
+#         # Number of channels after second convolution
+#         width = int(math.floor(nb_channels * (cfg.base_width / 64)) * cfg.cardinality)
+#         # Number of channels after first convolution
+#         first_planes = width // cfg.block_reduce_first
+#         # Number of channels after third convolution
+#         out_planes = nb_channels * self.expansion
+#         use_aa = cfg.aa_layer and stride == 2
+#
+#         self.conv1 = tf.keras.layers.Conv2D(
+#             filters=first_planes,
+#             kernel_size=1,
+#             use_bias=False,
+#             name="conv1",
+#         )
+#         self.bn1 = self.norm_layer(name="bn1")
+#         self.act1 = self.act_layer()
+#
+#         self.pad2 = tf.keras.layers.ZeroPadding2D(padding=1)
+#         self.conv2 = tf.keras.layers.Conv2D(
+#             filters=width,
+#             kernel_size=3,
+#             # If we use anti-aliasing, the anti-aliasing layer takes care of strides
+#             strides=1 if use_aa else stride,
+#             groups=cfg.cardinality,
+#             use_bias=False,
+#             name="conv2",
+#         )
+#         self.bn2 = self.norm_layer(name="bn2")
+#         self.act2 = self.act_layer()
+#         self.aa = BlurPool2D(stride=stride) if use_aa else None
+#
+#         self.conv3 = tf.keras.layers.Conv2D(
+#             filters=out_planes,
+#             kernel_size=1,
+#             use_bias=False,
+#             name="conv3",
+#         )
+#         initializer = "zeros" if cfg.zero_init_last_bn else "ones"
+#         if cfg.norm_layer == "batch_norm":
+#             # Only batch norm layer has moving_variance_initializer parameter
+#             self.bn3 = self.norm_layer(
+#                 gamma_initializer=initializer,
+#                 moving_variance_initializer=initializer,
+#                 name="bn3",
+#             )
+#         else:
+#             self.bn3 = self.norm_layer(gamma_initializer=initializer, name="bn3")
+#         if cfg.attn_layer == "se":
+#             self.se = self.attn_layer(rd_ratio=cfg.se_ratio, name="se")
+#         else:
+#             self.se = self.attn_layer(name="se")
+#         self.drop_path = DropPath(drop_prob=drop_path_rate)
+#         self.act3 = self.act_layer()
+#
+#     def call(self, x, training=False):
+#         shortcut = x
+#
+#         x = self.conv1(x)
+#         x = self.bn1(x, training=training)
+#         x = self.act1(x)
+#
+#         x = self.pad2(x)
+#         x = self.conv2(x)
+#         x = self.bn2(x, training=training)
+#         x = self.act2(x)
+#         if self.aa is not None:
+#             x = self.aa(x, training=training)
+#
+#         x = self.conv3(x)
+#         x = self.bn3(x, training=training)
+#
+#         x = self.se(x, training=training)
+#
+#         x = self.drop_path(x, training=training)
+#
+#         if self.downsample_layer is not None:
+#             shortcut = self.downsample_layer(shortcut, training=training)
+#         x += shortcut
+#         x = self.act3(x)
+#
+#         return x
 
 
 def downsample_avg(cfg: ResNetConfig, out_channels: int, stride: int, name: str):
@@ -437,7 +540,7 @@ def make_stage(
     stage_name = f"layer{idx + 1}"  # Weight compatibility requires this name
 
     assert cfg.block in {"basic_block", "bottleneck"}
-    block_cls = MBasicBlock if cfg.block == "basic_block" else Bottleneck
+    block_cls = MBasicBlock if cfg.block == "basic_block" else MBottleneck
     nb_blocks = cfg.nb_blocks[idx]
     nb_channels = cfg.nb_channels[idx]
     # The actual number of channels after the block. Not the same as nb_channels,
@@ -614,3 +717,15 @@ def resnet18():
     return generate_resnet_net_keras, cfg
 
 
+def resnet50():
+    """Constructs a ResNet-50 model."""
+    net_name = 'resnet50'
+    cfg = ResNetConfig(
+        name=net_name,
+        url="[timm]" + net_name,
+        block="bottleneck",
+        nb_blocks=(3, 4, 6, 3),
+        interpolation="bicubic",
+        crop_pct=0.95,
+    )
+    return generate_resnet_net_keras, cfg
