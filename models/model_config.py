@@ -12,6 +12,26 @@ from torch.utils.data import Subset
 
 # import numpy as np
 
+class ModifiedSubset(Subset):
+    def __init__(self, dataset, indices):
+        super().__init__(dataset, indices)
+        self.transform = None
+
+    def __getitem__(self, idx):
+        if isinstance(idx, list):
+            x = self.dataset[[self.indices[i] for i in idx]]
+            if self.transform is not None:
+                if isinstance(x, tuple):
+                    return self.transform(x[0]), *x[1:]
+                else:
+                    return self.transform(x)
+        x = self.dataset[self.indices[idx]]
+        if self.transform is not None:
+            if isinstance(x, tuple):
+                return self.transform(x[0]), *x[1:]
+            else:
+                return self.transform(x)
+
 
 class ModelParameters(object):
     def __init__(self,
@@ -121,10 +141,8 @@ class ModelParameters(object):
                 return [next(iterator)]
         else:
             ds = timm.data.create_dataset("", in_dir)
-            ds = Subset(ds, list(np.random.randint(0, len(ds) + 1, num_images)))
+            ds = ModifiedSubset(ds, list(np.random.randint(0, len(ds) + 1, num_images)))
             dl = timm.data.create_loader(ds, image_size, batch_size, use_prefetcher=False)
-
-            # iterator = iter(timm.data.create_loader(ds, image_size, batch_size, use_prefetcher=False))
 
             def representative_dataset():
                 _iterator = iter(dl)
