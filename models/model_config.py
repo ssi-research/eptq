@@ -17,20 +17,20 @@ class ModifiedSubset(Subset):
         super().__init__(dataset, indices)
         self.transform = None
 
-    def __getitem__(self, idx):
-        if isinstance(idx, list):
-            x = self.dataset[[self.indices[i] for i in idx]]
-            if self.transform is not None:
-                if isinstance(x, tuple):
-                    return self.transform(x[0]), *x[1:]
-                else:
-                    return self.transform(x)
-        x = self.dataset[self.indices[idx]]
+    def apply_transform(self, x):
         if self.transform is not None:
             if isinstance(x, tuple):
                 return self.transform(x[0]), *x[1:]
             else:
                 return self.transform(x)
+        return x
+
+    def __getitem__(self, idx):
+        if isinstance(idx, list):
+            x = self.dataset[[self.indices[i] for i in idx]]
+            return self.apply_transform(x)
+        x = self.dataset[self.indices[idx]]
+        return self.apply_transform(x)
 
 
 class ModelParameters(object):
