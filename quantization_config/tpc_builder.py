@@ -9,13 +9,16 @@ FIXED_NAME = 'fixed_bitwidth_tpc'
 
 def build_target_platform_capabilities(mixed_precision: bool, activation_nbits: int, weights_nbits: int,
                                        disable_weights_quantization: bool,
-                                       disable_activation_quantization: bool,
+                                       disable_activation_quantization: bool, weights_cr, activation_cr, total_cr,
                                        mixed_precision_config: MPCONFIG = MPCONFIG.MP_PARTIAL_CANDIDATES):
     # TODO: Add logging
     if mixed_precision:
-        mixed_precision_options = [(w, a)
-                                   for w in MP_BITWIDTH_OPTIONS_DICT[mixed_precision_config]
-                                   for a in MP_BITWIDTH_OPTIONS_DICT[mixed_precision_config]]
+        weights_mp = weights_cr is not None or total_cr is not None
+        activation_mp = activation_cr is not None or total_cr is not None
+        activation_bits = MP_BITWIDTH_OPTIONS_DICT[mixed_precision_config] if activation_mp else [activation_nbits]
+        weights_bits = MP_BITWIDTH_OPTIONS_DICT[mixed_precision_config] if weights_mp else [weights_nbits]
+
+        mixed_precision_options = [(w, a) for w in weights_bits for a in activation_bits]
         target_platform_model = get_mixed_precision_tp_model(mixed_precision_options=mixed_precision_options,
                                                              enable_weights_quantization=not disable_weights_quantization,
                                                              enable_activation_quantization=not disable_activation_quantization)

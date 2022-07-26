@@ -115,7 +115,8 @@ def main():
                                                                                  args.activation_nbits,
                                                                                  args.weights_nbits,
                                                                                  args.disable_weights_quantization,
-                                                                                 args.disable_activation_quantization)
+                                                                                 args.disable_activation_quantization,
+                                                                                 args.weights_cr, args.activation_cr, args.total_cr)
     #################################################
     # Generate Model
     #################################################

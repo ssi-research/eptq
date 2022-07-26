@@ -4,10 +4,12 @@ import torch
 import numpy as np
 from tensorflow import keras
 from datasets.image_utils import get_default_keras_model_preprocess, keras_model_accuracy_evaluation, \
-    get_default_keras_data_preprocess, get_default_pytorch_preprocess
+    get_default_keras_data_preprocess
 from models.tfimm_modified.load_weight_updated import load_pytorch_weights_in_tf2_model
 
-# from torch.utils.data import Subset, SubsetRandomSampler
+from torch.utils.data import Subset
+
+
 # import numpy as np
 
 
@@ -66,7 +68,7 @@ class ModelParameters(object):
 
             return dataset
         else:
-            ds = timm.data.create_dataset("", dir_path, transform=get_default_pytorch_preprocess())
+            ds = timm.data.create_dataset("", dir_path)
             return timm.data.create_loader(ds, image_size, batch_size, use_prefetcher=False)
 
     @staticmethod
@@ -118,12 +120,15 @@ class ModelParameters(object):
             def representative_dataset():
                 return [next(iterator)]
         else:
-            ds = timm.data.create_dataset("", in_dir, transform=get_default_pytorch_preprocess())
+            ds = timm.data.create_dataset("", in_dir)
             ds = Subset(ds, list(np.random.randint(0, len(ds) + 1, num_images)))
-            iterator = iter(timm.data.create_loader(ds, image_size, batch_size, use_prefetcher=False))
+            dl = timm.data.create_loader(ds, image_size, batch_size, use_prefetcher=False)
+
+            # iterator = iter(timm.data.create_loader(ds, image_size, batch_size, use_prefetcher=False))
 
             def representative_dataset():
-                x = next(iterator)[0]
+                _iterator = iter(dl)
+                x = next(_iterator)[0]
                 return [torch.permute(x, [0, 2, 3, 1]).cpu().numpy()]
 
         return representative_dataset
