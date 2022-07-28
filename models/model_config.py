@@ -141,7 +141,7 @@ class ModelParameters(object):
                 return [next(iterator)]
         else:
             ds = timm.data.create_dataset("", in_dir)
-            ds = ModifiedSubset(ds, list(np.random.randint(0, len(ds) + 1, num_images)))
+            # ds = ModifiedSubset(ds, list(np.random.randint(0, len(ds) + 1, num_images)))
             dl = timm.data.create_loader(ds, image_size, batch_size, use_prefetcher=False)
 
             def representative_dataset():

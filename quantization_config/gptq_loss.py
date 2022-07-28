@@ -20,7 +20,7 @@ def mse_loss_per_tensor(y: tf.Tensor, x: tf.Tensor, normalized: bool = True, p: 
     return _loss / tf.reduce_mean(tf.pow(tf.abs(x), p)) if normalized else _loss
 
 
-def activation_mse(flp_act_list, fxp_act_list, p_vector=None):
+def activation_mse(flp_act_list, fxp_act_list, p_vector=None, weights_for_average_loss=None):
     loss_values_list = []
     bias_loss_list = []
     for i, (flp_act, fxp_act) in enumerate(zip(flp_act_list, fxp_act_list)):
@@ -38,7 +38,12 @@ def activation_mse(flp_act_list, fxp_act_list, p_vector=None):
 
         loss_values_list.append(point_loss)
         bias_loss_list.append(bias_loss)
-    return tf.reduce_sum(tf.stack(loss_values_list)), tf.reduce_mean(tf.stack(bias_loss_list))
+    if weights_for_average_loss is not None:
+        return tf.reduce_sum(weights_for_average_loss * tf.stack(loss_values_list)), \
+               tf.reduce_mean(tf.stack(bias_loss_list))
+    else:
+        return tf.reduce_sum(tf.stack(loss_values_list)), tf.reduce_mean(tf.stack(bias_loss_list))
+    # return tf.reduce_sum(tf.stack(loss_values_list)), tf.reduce_mean(tf.stack(bias_loss_list))
 
 
 class GPTQMultipleTensorsLoss:
@@ -63,6 +68,7 @@ class GPTQMultipleTensorsLoss:
                  flp_w_list: List[List[tf.Tensor]],
                  act_bn_mean: List,
                  act_bn_std: List,
+                 weights_for_average_loss: List,
                  ) -> tf.Tensor:
         """
         Compute mse between two lists of tensors. The returned loss is an
@@ -83,6 +89,7 @@ class GPTQMultipleTensorsLoss:
         #             act_bn_std]
         p_vector = None
 
-        loss_act, loss_activation_bias = activation_mse(flp_act_list, fxp_act_list, p_vector=p_vector)
+        loss_act, loss_activation_bias = activation_mse(flp_act_list, fxp_act_list, p_vector=p_vector,
+                                                        weights_for_average_loss=weights_for_average_loss)
 
         return loss_act

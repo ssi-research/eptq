@@ -32,4 +32,7 @@ def build_gptq_config(args):
                                  rounding_type=rounding_type,
                                  sam_optimization=args.sam_optimization,
                                  rho=args.rho,
-                                 log_function=log_func)
+                                 log_function=log_func,
+                                 use_jac_based_weights=args.jacobian_weights,
+                                 num_samples_for_loss=16
+                                 )

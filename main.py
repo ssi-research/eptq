@@ -75,6 +75,7 @@ def argument_handler():
     parser.add_argument('--hessian_weighting', action='store_true', default=False)
     parser.add_argument('--bn_p_norm', action='store_true', default=False)
     parser.add_argument('--activation_bias', action='store_true', default=False)
+    parser.add_argument('--jacobian_weights', action='store_true', default=False)
 
     args = parser.parse_args()
     return args
