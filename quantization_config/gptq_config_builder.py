@@ -21,7 +21,7 @@ def log_func(loss_value, grads, vars, compare_points):
 def build_gptq_config(args):
     rounding_type = RoundingType.STE if args.ste_rounding else RoundingType.GumbelRounding
     optimizer = RAdam(learning_rate=args.lr)
-    optimizer_rest = RAdam(learning_rate=1e-4)
+    optimizer_rest = RAdam(learning_rate=args.lr_rest)
     return mct.GradientPTQConfig(n_iter=args.gptq_num_calibration_iter,
                                  optimizer=optimizer,
                                  optimizer_rest=optimizer_rest,

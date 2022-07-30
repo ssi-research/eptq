@@ -38,7 +38,7 @@ def activation_mse(flp_act_list, fxp_act_list, p_vector=None):
 
         loss_values_list.append(point_loss)
         bias_loss_list.append(bias_loss)
-    return tf.reduce_sum(tf.stack(loss_values_list)), tf.reduce_mean(tf.stack(bias_loss_list))
+    return tf.reduce_mean(tf.stack(loss_values_list)), tf.reduce_mean(tf.stack(bias_loss_list))
 
 
 class GPTQMultipleTensorsLoss:
