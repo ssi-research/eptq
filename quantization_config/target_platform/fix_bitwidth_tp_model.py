@@ -101,6 +101,7 @@ def generate_tp_model(default_config: OpQuantizationConfig,
         swish = tp.OperatorsSet("Swish")
         sigmoid = tp.OperatorsSet("Sigmoid")
         tanh = tp.OperatorsSet("Tanh")
+        tp.OperatorsSet("Input")
 
         # Combine multiple operators into a single operator to avoid quantization between
         # them. To do this we define fusing patterns using the OperatorsSets that were created.
