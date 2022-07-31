@@ -2,6 +2,7 @@ import tensorflow as tf
 
 from keras.layers import Conv2D, DepthwiseConv2D, Dense, Reshape, ZeroPadding2D, \
     Dropout, MaxPooling2D, Activation, ReLU, Add, Subtract, Multiply, PReLU, Flatten, Cropping2D
+from keras.engine.input_layer import InputLayer
 
 import model_compression_toolkit as mct
 
@@ -53,5 +54,6 @@ def generate_keras_tpc(tp_model: tp.TargetPlatformModel, name: str):
         tp.OperationsSetToLayers("Swish", [tf.nn.swish, tp.LayerFilterParams(Activation, activation="swish")])
         tp.OperationsSetToLayers("Sigmoid", [tf.nn.sigmoid, tp.LayerFilterParams(Activation, activation="sigmoid")])
         tp.OperationsSetToLayers("Tanh", [tf.nn.tanh, tp.LayerFilterParams(Activation, activation="tanh")])
+        tp.OperationsSetToLayers("Input", [InputLayer])
 
     return keras_tpc

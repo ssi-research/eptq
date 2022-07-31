@@ -12,25 +12,25 @@ from torch.utils.data import Subset
 
 # import numpy as np
 
-class ModifiedSubset(Subset):
-    def __init__(self, dataset, indices):
-        super().__init__(dataset, indices)
-        self.transform = None
-
-    def apply_transform(self, x):
-        if self.transform is not None:
-            if isinstance(x, tuple):
-                return self.transform(x[0]), *x[1:]
-            else:
-                return self.transform(x)
-        return x
-
-    def __getitem__(self, idx):
-        if isinstance(idx, list):
-            x = self.dataset[[self.indices[i] for i in idx]]
-            return self.apply_transform(x)
-        x = self.dataset[self.indices[idx]]
-        return self.apply_transform(x)
+# class ModifiedSubset(Subset):
+#     def __init__(self, dataset, indices):
+#         super().__init__(dataset, indices)
+#         self.transform = None
+#
+#     def apply_transform(self, x):
+#         if self.transform is not None:
+#             if isinstance(x, tuple):
+#                 return self.transform(x[0]), *x[1:]
+#             else:
+#                 return self.transform(x)
+#         return x
+#
+#     def __getitem__(self, idx):
+#         if isinstance(idx, list):
+#             x = self.dataset[[self.indices[i] for i in idx]]
+#             return self.apply_transform(x)
+#         x = self.dataset[self.indices[idx]]
+#         return self.apply_transform(x)
 
 
 class ModelParameters(object):
@@ -140,14 +140,31 @@ class ModelParameters(object):
             def representative_dataset():
                 return [next(iterator)]
         else:
-            ds = timm.data.create_dataset("", in_dir)
-            # ds = ModifiedSubset(ds, list(np.random.randint(0, len(ds) + 1, num_images)))
-            dl = timm.data.create_loader(ds, image_size, batch_size, use_prefetcher=False)
+            transform = timm.data.create_transform(image_size)
+            ds = timm.data.create_dataset("", in_dir, transform=transform)
+            ds = Subset(ds, list(np.random.randint(0, len(ds) + 1, num_images)))
+            dl = torch.utils.data.DataLoader(ds, batch_size, shuffle=True, num_workers=1)
 
-            def representative_dataset():
-                _iterator = iter(dl)
-                x = next(_iterator)[0]
-                return [torch.permute(x, [0, 2, 3, 1]).cpu().numpy()]
+            # dl = timm.data.create_loader(ds, image_size, batch_size, use_prefetcher=False)
+            # _iterator = iter(dl)
+
+            class RepresentativeDataset(object):
+                def __init__(self, in_data_loader):
+                    self.dl = in_data_loader
+                    self.iter = iter(self.dl)
+
+                def __call__(self):
+                    try:
+                        x = next(self.iter)[0]
+                    except StopIteration:
+                        self.iter = iter(self.dl)
+                        x = next(self.iter)[0]
+                    return [torch.permute(x, [0, 2, 3, 1]).cpu().numpy()]
+
+            return RepresentativeDataset(dl)
+            # def representative_dataset():
+            #     x = next(_iterator)[0]
+            #     return [torch.permute(x, [0, 2, 3, 1]).cpu().numpy()]
 
         return representative_dataset
 

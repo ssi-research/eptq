@@ -71,6 +71,9 @@ def argument_handler():
     parser.add_argument('--gamma_temperature', type=float, default=0.01)
     parser.add_argument('--lr', type=float, default=0.2,
                         help='GPTQ learning rate')
+    parser.add_argument('--lr_rest', type=float, default=1e-4,
+                        help='GPTQ learning rate')
+
     # Loss
     parser.add_argument('--hessian_weighting', action='store_true', default=False)
     parser.add_argument('--bn_p_norm', action='store_true', default=False)
@@ -117,7 +120,8 @@ def main():
                                                                                  args.weights_nbits,
                                                                                  args.disable_weights_quantization,
                                                                                  args.disable_activation_quantization,
-                                                                                 args.weights_cr, args.activation_cr, args.total_cr)
+                                                                                 args.weights_cr, args.activation_cr,
+                                                                                 args.total_cr)
     #################################################
     # Generate Model
     #################################################

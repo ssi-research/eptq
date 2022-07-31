@@ -97,6 +97,7 @@ def generate_mixed_precision_tp_model(default_config: OpQuantizationConfig,
         swish = tp.OperatorsSet("Swish", mixed_precision_configuration_options)
         sigmoid = tp.OperatorsSet("Sigmoid", mixed_precision_configuration_options)
         tanh = tp.OperatorsSet("Tanh", mixed_precision_configuration_options)
+        tp.OperatorsSet("Input", mixed_precision_configuration_options)
 
         activations_after_conv_to_fuse = tp.OperatorSetConcat(any_relu, swish, prelu, sigmoid, tanh)
         activations_after_fc_to_fuse = tp.OperatorSetConcat(any_relu, swish, sigmoid)
