@@ -8,7 +8,8 @@ tp = mct.target_platform
 
 def get_mixed_precision_tp_model(mixed_precision_options,
                                  enable_weights_quantization=True,
-                                 enable_activation_quantization=True) -> TargetPlatformModel:
+                                 enable_activation_quantization=True,
+                                 is_symmetric: bool = False) -> TargetPlatformModel:
     """
     A method that generates a default target platform model, with base 8-bit quantization configuration and 8, 4, 2
     bits configuration list for mixed-precision quantization.
@@ -24,10 +25,11 @@ def get_mixed_precision_tp_model(mixed_precision_options,
 
     mixed_precision_options.sort(reverse=True)
     max_weights_bitwidth, max_activation_bitwidth = mixed_precision_options[0]
+    weights_quantization_method = tp.QuantizationMethod.SYMMETRIC if is_symmetric else tp.QuantizationMethod.UNIFORM
 
     default_config = tp.OpQuantizationConfig(
         activation_quantization_method=tp.QuantizationMethod.UNIFORM,
-        weights_quantization_method=tp.QuantizationMethod.UNIFORM,
+        weights_quantization_method=weights_quantization_method,
         weights_n_bits=max_weights_bitwidth,
         activation_n_bits=max_activation_bitwidth,
         weights_per_channel_threshold=True,
@@ -40,7 +42,7 @@ def get_mixed_precision_tp_model(mixed_precision_options,
 
     no_quant_config = tp.OpQuantizationConfig(
         activation_quantization_method=tp.QuantizationMethod.UNIFORM,
-        weights_quantization_method=tp.QuantizationMethod.UNIFORM,
+        weights_quantization_method=weights_quantization_method,
         activation_n_bits=max_activation_bitwidth,  # does not affect quantization
         weights_n_bits=max_weights_bitwidth,  # does not affect quantization
         weights_per_channel_threshold=True,

@@ -3,7 +3,7 @@ from typing import List
 import tensorflow as tf
 
 
-def mse_loss_per_tensor(y: tf.Tensor, x: tf.Tensor, normalized: bool = True, p: int = 2) -> tf.Tensor:
+def mse_loss_per_tensor(y: tf.Tensor, x: tf.Tensor, normalized: bool = False, p: int = 2) -> tf.Tensor:
     """
     Compute the MSE of two tensors.
     Args:

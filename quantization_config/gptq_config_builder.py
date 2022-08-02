@@ -18,6 +18,20 @@ def log_func(loss_value, grads, vars, compare_points):
     wandb.log(results_dict)
 
 
+from model_compression_toolkit.core.common.defaultdict import DefaultDict
+
+
+def build_shift_dict(args):
+    shift_dict = {8: args.m8,
+                  7: args.m7,
+                  6: args.m6,
+                  5: args.m5,
+                  4: args.m4,
+                  3: args.m3,
+                  2: args.m2}
+    return shift_dict
+
+
 def build_gptq_config(args):
     rounding_type = RoundingType.STE if args.ste_rounding else RoundingType.GumbelRounding
     optimizer = RAdam(learning_rate=args.lr)
@@ -33,6 +47,7 @@ def build_gptq_config(args):
                                  sam_optimization=args.sam_optimization,
                                  rho=args.rho,
                                  log_function=log_func,
+                                 lsb_change_per_bit_width=build_shift_dict(args),
                                  use_jac_based_weights=args.jacobian_weights,
                                  num_samples_for_loss=args.jacobian_weights_num_samples,
                                  norm_weights=args.norm_weights

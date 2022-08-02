@@ -45,6 +45,8 @@ def argument_handler():
     #####################################################################
     parser.add_argument('--mixed_precision', action='store_true', default=False,
                         help='Enable Mixed-Precision quantization')
+    parser.add_argument('--mp_all_bits', action='store_true', default=False,
+                        help='Enable Mixed-Precision quantization')
     parser.add_argument('--weights_cr', type=float,
                         help='Weights compression rate for mixed-precision')
     parser.add_argument('--activation_cr', type=float,
@@ -65,6 +67,7 @@ def argument_handler():
     parser.add_argument('--sam_optimization', action='store_true', default=False)
     parser.add_argument('--temperature_learning', action='store_true', default=False)
     parser.add_argument('--bias_learning', action='store_true', default=False)
+    parser.add_argument('--is_symmetric', action='store_true', default=False)
     parser.add_argument('--quantization_parameters_learning_weights', action='store_true', default=False)
     parser.add_argument('--quantization_parameters_learning_activation', action='store_true', default=False)
     parser.add_argument('--rho', type=float, default=0.01)
@@ -73,6 +76,14 @@ def argument_handler():
                         help='GPTQ learning rate')
     parser.add_argument('--lr_rest', type=float, default=1e-4,
                         help='GPTQ learning rate')
+
+    parser.add_argument('--m8', type=int, default=1)
+    parser.add_argument('--m7', type=int, default=1)
+    parser.add_argument('--m6', type=int, default=1)
+    parser.add_argument('--m5', type=int, default=1)
+    parser.add_argument('--m4', type=int, default=1)
+    parser.add_argument('--m3', type=int, default=1)
+    parser.add_argument('--m2', type=int, default=1)
 
     # Loss
     parser.add_argument('--hessian_weighting', action='store_true', default=False)
@@ -118,13 +129,16 @@ def main():
     #################################################
     # Get a TargetPlatformModel object that models the hardware for the quantized model inference.
     # The model determines the quantization methods to use during the MCT optimization process.
+    mixed_precision_config = utils.MPCONFIG.MP_FULL_CANDIDATES if args.mp_all_bits else utils.MPCONFIG.MP_PARTIAL_CANDIDATES
     target_platform_cap = quantization_config.build_target_platform_capabilities(args.mixed_precision,
                                                                                  args.activation_nbits,
                                                                                  args.weights_nbits,
                                                                                  args.disable_weights_quantization,
                                                                                  args.disable_activation_quantization,
                                                                                  args.weights_cr, args.activation_cr,
-                                                                                 args.total_cr)
+                                                                                 args.total_cr,
+                                                                                 mixed_precision_config=mixed_precision_config,
+                                                                                 is_symmetric=args.is_symmetric)
     #################################################
     # Generate Model
     #################################################
