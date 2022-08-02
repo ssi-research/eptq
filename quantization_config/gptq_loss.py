@@ -1,6 +1,5 @@
 from typing import List
 
-import numpy as np
 import tensorflow as tf
 
 
@@ -20,7 +19,7 @@ def mse_loss_per_tensor(y: tf.Tensor, x: tf.Tensor, normalized: bool = True, p: 
     return _loss / tf.reduce_mean(tf.pow(tf.abs(x), p)) if normalized else _loss
 
 
-def activation_mse(flp_act_list, fxp_act_list, p_vector=None, weights_for_average_loss=None):
+def activation_mse(flp_act_list, fxp_act_list, p_vector=None, weights_for_average_loss=None, norm_loss=True):
     loss_values_list = []
     bias_loss_list = []
     for i, (flp_act, fxp_act) in enumerate(zip(flp_act_list, fxp_act_list)):
@@ -28,7 +27,7 @@ def activation_mse(flp_act_list, fxp_act_list, p_vector=None, weights_for_averag
             p = 2.0
         else:
             p = p_vector[i]
-        point_loss = mse_loss_per_tensor(fxp_act, flp_act, p=p)
+        point_loss = mse_loss_per_tensor(fxp_act, flp_act, p=p, normalized=norm_loss)
         delta = flp_act - fxp_act
         m = len(delta.shape)
 
@@ -47,8 +46,9 @@ def activation_mse(flp_act_list, fxp_act_list, p_vector=None, weights_for_averag
 
 
 class GPTQMultipleTensorsLoss:
-    def __init__(self):
+    def __init__(self, norm_loss: bool = True):
         self.alpha = None
+        self.norm_loss = norm_loss
 
     # def upload_loss_alpha(self, *args):
     #     if self.alpha is None:
@@ -90,6 +90,7 @@ class GPTQMultipleTensorsLoss:
         p_vector = None
 
         loss_act, loss_activation_bias = activation_mse(flp_act_list, fxp_act_list, p_vector=p_vector,
-                                                        weights_for_average_loss=weights_for_average_loss)
+                                                        weights_for_average_loss=weights_for_average_loss,
+                                                        norm_loss=self.norm_loss)
 
         return loss_act

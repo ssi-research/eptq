@@ -25,7 +25,7 @@ def build_gptq_config(args):
     return mct.GradientPTQConfig(n_iter=args.gptq_num_calibration_iter,
                                  optimizer=optimizer,
                                  optimizer_rest=optimizer_rest,
-                                 loss=GPTQMultipleTensorsLoss(),
+                                 loss=GPTQMultipleTensorsLoss(norm_loss=args.norm_loss),
                                  temperature_learning=args.temperature_learning,
                                  train_bias=args.bias_learning,
                                  quantization_parameters_learning=args.quantization_parameters_learning_weights,
@@ -34,5 +34,6 @@ def build_gptq_config(args):
                                  rho=args.rho,
                                  log_function=log_func,
                                  use_jac_based_weights=args.jacobian_weights,
-                                 num_samples_for_loss=16
+                                 num_samples_for_loss=args.jacobian_weights_num_samples,
+                                 norm_weights=args.norm_weights
                                  )
