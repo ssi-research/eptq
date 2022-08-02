@@ -74,7 +74,7 @@ def compute_jacobian_trace_approx(net, n_iter, input_tensors):
 
     for module in list(net.modules())[1:]:
         if not isinstance(module, nn.Sequential) and (
-                isinstance(module, nn.Conv2d)):  # or isinstance(module, nn.ReLU)):
+                isinstance(module, nn.BatchNorm2d)):  # or isinstance(module, nn.ReLU)):
             module.register_forward_hook(get_activation())
 
     batch_jac_trace = []
@@ -139,6 +139,7 @@ if __name__ == '__main__':
     n_iter = 50
     batch_size = 16
     net = models.resnet18(pretrained=True)
+    net = net.eval()
 
     samples = next(iter(get_validation_loader(batch_size)))[0]
     input_tensors = [samples[i - 1:i, :, :, :] for i in range(1, samples.shape[0] + 1)]
@@ -149,25 +150,27 @@ if __name__ == '__main__':
                                                                                            input_tensors=input_tensors)
 
     running_mean = np.cumsum(jac_norm_approx_array) / np.cumsum(np.ones(len(jac_norm_approx_array)))
+    trace_mean = np.mean(batch_jac_trace, axis=0)
     plt.plot(running_mean)
     plt.show()
-    print("a")
-    plt.subplot(2, 2, 1)
-    plt.plot(batch_jac_trace[0, :])
-    trace_mean = np.mean(batch_jac_trace, axis=0)
-    plt.plot(trace_mean)
-    plt.subplot(2, 2, 2)
-    plt.plot(batch_jac_norm[0, :])
-    norm_mean = np.mean(batch_jac_norm, axis=0)
-    plt.plot(norm_mean)
-    plt.subplot(2, 2, 3)
-    # norm_mean_min = norm_mean - np.max(norm_mean)
-    plt.plot(norm_mean / np.sum(norm_mean), label="norm")
-    # plt.plot(np.exp(norm_mean_min) / np.sum(np.exp(norm_mean_min)), label="norm-softmax")
-    plt.plot(trace_mean / np.sum(trace_mean), label="trace")
+
+    plt.plot(trace_mean , label="trace")
     plt.legend()
     plt.grid()
     plt.show()
+    # print("a")
+    # plt.subplot(2, 2, 1)
+    # plt.plot(batch_jac_trace[0, :])
+
+    # plt.plot(trace_mean)
+    # plt.subplot(2, 2, 2)
+    # plt.plot(batch_jac_norm[0, :])
+    # norm_mean = np.mean(batch_jac_norm, axis=0)
+    # plt.plot(norm_mean)
+    # plt.subplot(2, 2, 3)
+    # norm_mean_min = norm_mean - np.max(norm_mean)
+    # plt.plot(norm_mean / np.sum(norm_mean), label="norm")
+    # plt.plot(np.exp(norm_mean_min) / np.sum(np.exp(norm_mean_min)), label="norm-softmax")
     # batch_jac_trace = np.asarray(batch_jac_trace)
 
     # print(final_jac_approx)

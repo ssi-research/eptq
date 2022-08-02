@@ -186,7 +186,8 @@ def main():
     quant_result = model_cfg.evaluation_function(quantized_model, val_dataset)
     wandb.log({"quantized_results": quant_result * 100,
                "float_results": float_result * 100,
-               **quantization_config.kpi2dict(target_kpi)})
+               **quantization_config.kpi2dict(target_kpi),
+               **quantization_config.kpi2dict(quantization_info.final_kpi, "final")})
     print(f'Accuracy of quantized model: {quant_result * 100} (float model: {float_result * 100})')
 
 

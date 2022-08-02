@@ -9,16 +9,9 @@ import wandb
 
 
 def log_func(loss_value, grads, vars, compare_points):
-    results_dict = {v.name + '_grad': np.sqrt(np.sum(np.power(g.numpy(), 2.0)))
-                    for g, v in zip(grads, vars) if g is not None}
-    results_dict.update({v.name + '_stats': {'RMS': np.sqrt(np.mean(np.power(v.numpy(), 2.0))),
-                                             'max': np.abs(v.numpy()).max()}
-                         for v in vars if '_auxvar' in v.name})
+    results_dict = {}
     results_dict.update({'loss': loss_value.numpy()})
     wandb.log(results_dict)
-
-
-from model_compression_toolkit.core.common.defaultdict import DefaultDict
 
 
 def build_shift_dict(args):

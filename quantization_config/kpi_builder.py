@@ -27,11 +27,11 @@ def get_target_kpi(weights_cr, activation_cr, total_cr, model, representative_da
                total_memory=target_total_kpi)
 
 
-def kpi2dict(in_kpi: KPI) -> dict:
+def kpi2dict(in_kpi: KPI, add_tag: str = "") -> dict:
     if in_kpi is None:
-        return {"weights_memory": None,
-                "activation_memory": None,
-                "total_memory": None}
-    return {"weights_memory": in_kpi.weights_memory,
-            "activation_memory": in_kpi.activation_memory,
-            "total_memory": in_kpi.total_memory}
+        return {f"{add_tag}_weights_memory": None,
+                f"{add_tag}_activation_memory": None,
+                f"{add_tag}_total_memory": None}
+    return {f"{add_tag}_weights_memory": in_kpi.weights_memory,
+            f"{add_tag}_activation_memory": in_kpi.activation_memory,
+            f"{add_tag}_total_memory": in_kpi.total_memory}
