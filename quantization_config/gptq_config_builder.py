@@ -29,11 +29,11 @@ def build_gptq_config(args):
     rounding_type = RoundingType.STE if args.ste_rounding else RoundingType.GumbelRounding
     optimizer = RAdam(learning_rate=args.lr)
     optimizer_rest = RAdam(learning_rate=args.lr_rest)
+    gc = mct.GumbelConfig(temperature_learning=args.temperature_learning)
     return mct.GradientPTQConfig(n_iter=args.gptq_num_calibration_iter,
                                  optimizer=optimizer,
                                  optimizer_rest=optimizer_rest,
                                  loss=GPTQMultipleTensorsLoss(norm_loss=args.norm_loss),
-                                 temperature_learning=args.temperature_learning,
                                  train_bias=args.bias_learning,
                                  quantization_parameters_learning=args.quantization_parameters_learning_weights,
                                  rounding_type=rounding_type,
@@ -43,5 +43,6 @@ def build_gptq_config(args):
                                  lsb_change_per_bit_width=build_shift_dict(args),
                                  use_jac_based_weights=args.jacobian_weights,
                                  num_samples_for_loss=args.jacobian_weights_num_samples,
-                                 norm_weights=args.norm_weights
+                                 norm_weights=args.norm_weights,
+                                 quantizer_config=gc
                                  )

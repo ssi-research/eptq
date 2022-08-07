@@ -62,7 +62,7 @@ def argument_handler():
     #####################################################################
     parser.add_argument('--gptq', action='store_true', default=False,
                         help='Enable GPTQ quantization')
-    parser.add_argument('--gptq_num_calibration_iter', type=int, default=20000)
+    parser.add_argument('--gptq_num_calibration_iter', type=int, default=5000)
     parser.add_argument('--ste_rounding', action='store_true', default=False)
     parser.add_argument('--sam_optimization', action='store_true', default=False)
     parser.add_argument('--temperature_learning', action='store_true', default=False)
@@ -190,6 +190,7 @@ def main():
     quant_result = model_cfg.evaluation_function(quantized_model, val_dataset)
     wandb.log({"quantized_results": quant_result * 100,
                "float_results": float_result * 100,
+               "mixed_precision_cfg": quantization_info.mixed_precision_cfg,
                **quantization_config.kpi2dict(target_kpi),
                **quantization_config.kpi2dict(quantization_info.final_kpi, "final")})
     print(f'Accuracy of quantized model: {quant_result * 100} (float model: {float_result * 100})')
