@@ -74,8 +74,9 @@ def argument_handler():
     parser.add_argument('--gamma_temperature', type=float, default=0.01)
     parser.add_argument('--lr', type=float, default=0.2,
                         help='GPTQ learning rate')
-    parser.add_argument('--lr_rest', type=float, default=1e-4,
-                        help='GPTQ learning rate')
+    parser.add_argument('--lr_rest', type=float, default=1e-4, help='GPTQ learning rate')
+    parser.add_argument('--lr_bias', type=float, default=1e-4, help='GPTQ learning rate')
+    parser.add_argument('--lr_quantization_param', type=float, default=1e-4, help='GPTQ learning rate')
 
     parser.add_argument('--m8', type=int, default=1)
     parser.add_argument('--m7', type=int, default=1)

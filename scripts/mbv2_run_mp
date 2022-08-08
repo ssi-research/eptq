@@ -1,6 +1,7 @@
-nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 8
-nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 8.8
-nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 9.8
-nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 11
-nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 12.5
-nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 14.66
+#nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 8 # --gptq --temperature_learning --n_images 1024 --gptq_num_calibration_iter 20000  --lr 0.2 --lr_rest 1e-4 --bias_learning --weights_nbits 4 --jacobian_weights
+nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 8 # --gptq --temperature_learning --n_images 1024 --gptq_num_calibration_iter 20000  --lr 0.2 --lr_rest 1e-4 --bias_learning --weights_nbits 4 --jacobian_weights --disable_activation_quantization
+# nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 8.8
+# nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 9.8
+# nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 11
+# nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 12.5
+# nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 14.66

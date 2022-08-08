@@ -1,0 +1,3 @@
+nc run -C GPUALG python main.py --model_name resnet50 --gptq --temperature_learning --disable_activation_quantization --n_images 1024 --gptq_num_calibration_iter 20000  --lr 0.4 --lr_rest 1e-4 --bias_learning --weights_nbits 4 --jacobian_weights
+nc run -C GPUALG python main.py --model_name mbv2 --gptq --temperature_learning --disable_activation_quantization --n_images 1024 --gptq_num_calibration_iter 20000  --lr 0.4 --lr_rest 1e-4 --bias_learning --weights_nbits 4 --jacobian_weights
+

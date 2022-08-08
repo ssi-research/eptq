@@ -10,7 +10,9 @@ def core_config_builder(mixed_precision, num_calibration_iter, num_samples_for_d
     if mixed_precision:
         # TODO: set distance_fn and after changing default in library
         mp_config = MixedPrecisionQuantizationConfigV2(num_of_images=num_samples_for_distance,
-                                                       use_grad_based_weights=use_grad_based_weights)
+                                                       use_grad_based_weights=use_grad_based_weights,
+                                                       output_grad_factor=0.0,
+                                                       norm_weights=False)
     core_config = CoreConfig(num_calibration_iter,
                              quantization_config=quant_config,
                              mixed_precision_config=mp_config)
