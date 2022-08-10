@@ -18,11 +18,12 @@ model_dictionary = {
         evaluation_function=keras_model_accuracy_evaluation_timm
     ),
     'resnet50': ModelParameters(
-            model=resnet50,
-            float_accuracy=0.8011,
-            model_params={'weights': 'imagenet'},
-            is_tfimm=True,
-            evaluation_function=keras_model_accuracy_evaluation_timm
+        model=resnet50,
+        float_accuracy=0.8011,
+        model_params={'weights': 'imagenet'},
+        is_tfimm=True,
+        evaluation_function=keras_model_accuracy_evaluation_timm,
+        interpolation="bicubic"
     ),
     'mbv2': ModelParameters(
         model=mobilenet_v2_100_m,
@@ -30,6 +31,6 @@ model_dictionary = {
         model_params={'weights': 'imagenet'},
         is_tfimm=True,
         evaluation_function=keras_model_accuracy_evaluation_timm,
-        # interpolation="bicubic"
+        interpolation="bicubic"
     )
 }

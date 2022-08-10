@@ -6,8 +6,10 @@ from constants import VAL_DIR, TRAIN_DIR
 from models.model_dictionary import model_dictionary
 import model_compression_toolkit as mct
 import quantization_config
+from datetime import datetime
 
 PROJECT_NAME = 'gumbel-rounding'
+FILE_TIME_STAMP = datetime.now().strftime("%d-%b-%Y__%H:%M:%S")
 
 
 def argument_handler():
@@ -20,6 +22,7 @@ def argument_handler():
     parser.add_argument('--project_name', type=str, default=PROJECT_NAME)
     parser.add_argument('--float_evaluation', action='store_true')
     parser.add_argument('--random_seed', type=int, default=0)
+    parser.add_argument('--group', type=str)
     #####################################################################
     # Dataset Config
     #####################################################################
@@ -115,7 +118,8 @@ def get_float_result(in_args, in_model_cfg, in_model, in_val_dataset) -> float:
 
 def main():
     args = argument_handler()
-    wandb.init(project=PROJECT_NAME)
+    wandb.init(project=PROJECT_NAME, group=f"{args.model_name}_{args.gptq}_{args.mixed_precision}_{args.group}",
+               name=f"{args.model_name}_{FILE_TIME_STAMP}")
     wandb.config.update(args)
     utils.set_seed(args.random_seed)
 
