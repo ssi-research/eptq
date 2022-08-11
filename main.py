@@ -56,7 +56,7 @@ def argument_handler():
                         help='Activation compression rate for mixed-precision')
     parser.add_argument('--total_cr', type=float,
                         help='Total compression rate for mixed-precision')
-    parser.add_argument('--num_samples_for_distance', type=int, default=32,
+    parser.add_argument('--num_samples_for_distance', type=int, default=8,
                         help='Number of samples in distance matrix for distance computation')
     parser.add_argument('--use_grad_based_weights', action='store_true', default=False,
                         help='A flag to enable gradient-based weights for distance metric weighted average')
@@ -118,16 +118,22 @@ def get_float_result(in_args, in_model_cfg, in_model, in_val_dataset) -> float:
 
 def main():
     args = argument_handler()
-    wandb.init(project=PROJECT_NAME, group=f"{args.model_name}_{args.gptq}_{args.mixed_precision}_{args.group}",
-               name=f"{args.model_name}_{FILE_TIME_STAMP}")
+    group = None
+    name = None
+    if args.group is not None:
+        group = f"{args.model_name}_{args.gptq}_{args.mixed_precision}_{args.group}"
+        name = f"{args.model_name}_{FILE_TIME_STAMP}"
+    wandb.init(project=PROJECT_NAME, group=group, name=name)
     wandb.config.update(args)
     utils.set_seed(args.random_seed)
 
     #################################################
     # Build quantization configuration
     #################################################
-    core_config = quantization_config.core_config_builder(args.mixed_precision, args.num_calibration_iter,
-                                                          args.num_samples_for_distance, args.use_grad_based_weights)
+    core_config = quantization_config.core_config_builder(args.mixed_precision,
+                                                          args.num_calibration_iter,
+                                                          args.num_samples_for_distance,
+                                                          args.use_grad_based_weights)
 
     #################################################
     # Run the Model Compression Toolkit
@@ -135,15 +141,16 @@ def main():
     # Get a TargetPlatformModel object that models the hardware for the quantized model inference.
     # The model determines the quantization methods to use during the MCT optimization process.
     mixed_precision_config = utils.MPCONFIG.MP_FULL_CANDIDATES if args.mp_all_bits else utils.MPCONFIG.MP_PARTIAL_CANDIDATES
-    target_platform_cap = quantization_config.build_target_platform_capabilities(args.mixed_precision,
-                                                                                 args.activation_nbits,
-                                                                                 args.weights_nbits,
-                                                                                 args.disable_weights_quantization,
-                                                                                 args.disable_activation_quantization,
-                                                                                 args.weights_cr, args.activation_cr,
-                                                                                 args.total_cr,
-                                                                                 mixed_precision_config=mixed_precision_config,
-                                                                                 is_symmetric=args.is_symmetric)
+    target_platform_cap, bit_width_mapping = quantization_config.build_target_platform_capabilities(
+        args.mixed_precision,
+        args.activation_nbits,
+        args.weights_nbits,
+        args.disable_weights_quantization,
+        args.disable_activation_quantization,
+        args.weights_cr, args.activation_cr,
+        args.total_cr,
+        mixed_precision_config=mixed_precision_config,
+        is_symmetric=args.is_symmetric)
     #################################################
     # Generate Model
     #################################################
@@ -193,9 +200,10 @@ def main():
     # Run accuracy evaluation for the quantized model
     #################################################
     quant_result = model_cfg.evaluation_function(quantized_model, val_dataset)
+    wandb.config.update({"mixed_precision_cfg_final": quantization_info.mixed_precision_cfg,
+                         "bit-width-mapping": bit_width_mapping})
     wandb.log({"quantized_results": quant_result * 100,
                "float_results": float_result * 100,
-               "mixed_precision_cfg": quantization_info.mixed_precision_cfg,
                **quantization_config.kpi2dict(target_kpi),
                **quantization_config.kpi2dict(quantization_info.final_kpi, "final")})
     print(f'Accuracy of quantized model: {quant_result * 100} (float model: {float_result * 100})')

@@ -3,7 +3,7 @@ from enum import Enum
 
 class MPCONFIG(Enum):
     MP_PARTIAL_CANDIDATES = 0
-    MP_FULL_CANDIDATES = 0
+    MP_FULL_CANDIDATES = 1
 
 
 MP_BITWIDTH_OPTIONS_DICT = {

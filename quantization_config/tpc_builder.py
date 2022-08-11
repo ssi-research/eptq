@@ -13,11 +13,12 @@ def build_target_platform_capabilities(mixed_precision: bool, activation_nbits: 
                                        mixed_precision_config: MPCONFIG = MPCONFIG.MP_PARTIAL_CANDIDATES,
                                        is_symmetric: bool = False):
     # TODO: Add logging
+    bit_width_mapping = MP_BITWIDTH_OPTIONS_DICT[mixed_precision_config]
     if mixed_precision:
         weights_mp = weights_cr is not None or total_cr is not None
         activation_mp = activation_cr is not None or total_cr is not None
-        activation_bits = MP_BITWIDTH_OPTIONS_DICT[mixed_precision_config] if activation_mp else [activation_nbits]
-        weights_bits = MP_BITWIDTH_OPTIONS_DICT[mixed_precision_config] if weights_mp else [weights_nbits]
+        activation_bits = bit_width_mapping if activation_mp else [activation_nbits]
+        weights_bits = bit_width_mapping if weights_mp else [weights_nbits]
 
         mixed_precision_options = [(w, a) for w in weights_bits for a in activation_bits]
         target_platform_model = get_mixed_precision_tp_model(mixed_precision_options=mixed_precision_options,
@@ -34,4 +35,4 @@ def build_target_platform_capabilities(mixed_precision: bool, activation_nbits: 
                                                             enable_activation_quantization=not disable_activation_quantization,
                                                             is_symmetric=is_symmetric)
         target_platform_cap = generate_keras_tpc(target_platform_model, name=FIXED_NAME)
-    return target_platform_cap
+    return target_platform_cap, bit_width_mapping
