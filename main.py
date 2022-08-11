@@ -11,6 +11,16 @@ from datetime import datetime
 PROJECT_NAME = 'gumbel-rounding'
 FILE_TIME_STAMP = datetime.now().strftime("%d-%b-%Y__%H:%M:%S")
 
+MPOVERRIDE_DICT_W = {"resnet18": {8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 2, 1],
+                                  8.8: [0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2],
+                                  9.8: [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2],
+                                  11: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2],
+                                  12.5: [0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 2],
+                                  14.5: [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2]}, }
+MPOVERRIDE_DICT_T = {"resnet18": {
+    8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 3, 0, 0, 0, 3, 0, 1, 3, 0, 3, 0, 1, 0, 3, 0, 1, 3, 0, 3, 0, 1, 0, 6,
+        0, 3]}}
+
 
 def argument_handler():
     parser = argparse.ArgumentParser()
@@ -47,6 +57,8 @@ def argument_handler():
     # Mixed Precision Config
     #####################################################################
     parser.add_argument('--mixed_precision', action='store_true', default=False,
+                        help='Enable Mixed-Precision quantization')
+    parser.add_argument('--mixed_precision_override', action='store_true', default=False,
                         help='Enable Mixed-Precision quantization')
     parser.add_argument('--mp_all_bits', action='store_true', default=False,
                         help='Enable Mixed-Precision quantization')
@@ -130,10 +142,21 @@ def main():
     #################################################
     # Build quantization configuration
     #################################################
+    configuration_overwrite = None
+    if args.mixed_precision_override:
+        weights_mp = args.weights_cr is not None or args.total_cr is not None
+        activation_mp = args.activation_cr is not None or args.total_cr is not None
+        if weights_mp and activation_mp:
+            raise NotImplemented
+        elif weights_mp:
+            configuration_overwrite = MPOVERRIDE_DICT_W[args.model_name][args.weights_cr]
+        else:
+            raise NotImplemented
     core_config = quantization_config.core_config_builder(args.mixed_precision,
                                                           args.num_calibration_iter,
                                                           args.num_samples_for_distance,
-                                                          args.use_grad_based_weights)
+                                                          args.use_grad_based_weights,
+                                                          configuration_overwrite)
 
     #################################################
     # Run the Model Compression Toolkit

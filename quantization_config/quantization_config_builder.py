@@ -23,7 +23,8 @@ def compute_mse(float_tensor: np.ndarray, fxp_tensor: np.ndarray, norm: bool = T
     return error
 
 
-def core_config_builder(mixed_precision, num_calibration_iter, num_samples_for_distance, use_grad_based_weights):
+def core_config_builder(mixed_precision, num_calibration_iter, num_samples_for_distance, use_grad_based_weights,
+                        configuration_overwrite):
     # TODO: Need to edit the config or is default config is enough?
     quant_config = QuantizationConfig()
     mp_config = None
@@ -33,7 +34,8 @@ def core_config_builder(mixed_precision, num_calibration_iter, num_samples_for_d
                                                        num_of_images=num_samples_for_distance,
                                                        use_grad_based_weights=use_grad_based_weights,
                                                        output_grad_factor=0.0,
-                                                       norm_weights=False)
+                                                       norm_weights=False,
+                                                       configuration_overwrite=configuration_overwrite)
     core_config = CoreConfig(num_calibration_iter,
                              quantization_config=quant_config,
                              mixed_precision_config=mp_config)
