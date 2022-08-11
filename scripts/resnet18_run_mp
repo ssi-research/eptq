@@ -1,6 +1,7 @@
-nc run -C GPUALG python main.py --model_name resnet18 --use_grad_based_weights --mixed_precision --total_cr 8
-nc run -C GPUALG python main.py --model_name resnet18 --use_grad_based_weights --mixed_precision --total_cr 8.8
-nc run -C GPUALG python main.py --model_name resnet18 --use_grad_based_weights --mixed_precision --total_cr 9.8
-nc run -C GPUALG python main.py --model_name resnet18 --use_grad_based_weights --mixed_precision --total_cr 11
-nc run -C GPUALG python main.py --model_name resnet18 --use_grad_based_weights --mixed_precision --total_cr 12.5
-nc run -C GPUALG python main.py --model_name resnet18 --use_grad_based_weights --mixed_precision --total_cr 14.66
+#!/bin/bash
+nc run -C GPUALG python main.py --model_name resnet18 --use_grad_based_weights --mixed_precision --total_cr 8 --group mpbaseresnet18
+nc run -C GPUALG python main.py --model_name resnet18 --use_grad_based_weights --mixed_precision --total_cr 8.8 --group mpbaseresnet18
+nc run -C GPUALG python main.py --model_name resnet18 --use_grad_based_weights --mixed_precision --total_cr 9.8 --group mpbaseresnet18
+nc run -C GPUALG python main.py --model_name resnet18 --use_grad_based_weights --mixed_precision --total_cr 11 --group mpbaseresnet18
+nc run -C GPUALG python main.py --model_name resnet18 --use_grad_based_weights --mixed_precision --total_cr 12.5 --group mpbaseresnet18
+nc run -C GPUALG python main.py --model_name resnet18 --use_grad_based_weights --mixed_precision --total_cr 14.66 --group mpbaseresnet18
