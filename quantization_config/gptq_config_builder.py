@@ -1,5 +1,5 @@
 from typing import List
-
+import tensorflow as tf
 import model_compression_toolkit as mct
 from model_compression_toolkit import RoundingType
 from utils.radam_optimizer import RAdam
@@ -31,10 +31,11 @@ def build_gptq_config(args):
     optimizer_rest = RAdam(learning_rate=args.lr_rest)
     if args.lr_bias:
         optimizer_bias = RAdam(learning_rate=args.lr_bias)
+        optimizer_bias = tf.keras.optimizers.SGD(learning_rate=args.lr_bias, momentum=0.9)
     else:
         optimizer_bias = None
     if args.lr_quantization_param:
-        optimizer_quantization_param = RAdam(learning_rate=args.lr_quantization_param)
+        optimizer_quantization_param = tf.keras.optimizers.SGD(learning_rate=args.lr_quantization_param, momentum=0.9)
     else:
         optimizer_quantization_param = None
     gc = mct.GumbelConfig(temperature_learning=args.temperature_learning)

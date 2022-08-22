@@ -1,6 +1,36 @@
-nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 8
-nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 8.8
-nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 9.8
-nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 11
-nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 12.5
-nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr 14.66
+only_mp () {
+  # $1 cr
+
+  for N in 1 2 3 4 5
+  do
+    nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --weights_cr $1 --group $1-mbv2
+  done
+}
+
+only_mp_total () {
+  # $1 cr
+
+  for N in 1 2 3 4 5
+  do
+    nc run -C GPUALG python main.py --model_name mbv2 --use_grad_based_weights --mixed_precision --total_cr $1 --group $1-total
+  done
+}
+
+mp_gptq () {
+  # $1 cr
+
+  for N in 1 2 3 4 5
+  do
+    nc run -C GPUALG python main.py --model_name mbv2  --mixed_precision_override  --use_grad_based_weights --mixed_precision --weights_cr $1 --gptq --temperature_learning --lr 0.1 --bias_learning --weights_nbits 4 --jacobian_weights --norm_loss  --n_images 2048 --gptq_num_calibration_iter 40000 --m8 2 --group $1-mbv2-gptq-improved
+  done
+}
+only_mp_total 6.4
+only_mp_total 6.8
+only_mp_total 7.2
+only_mp_total 7.6
+only_mp_total 8
+only_mp_total 8.8
+only_mp_total 9.8
+only_mp_total 11
+only_mp_total 12.5
+only_mp_total 14.66
