@@ -8,11 +8,13 @@ from model_compression_toolkit.core.keras.default_framework_info import DEFAULT_
 def build_target_kpi(weights_cr, activation_cr, total_cr, mixed_precision, model, representative_data_gen, core_config,
                      target_platform_cap):
     target_kpi = None
+    fully_kpi = None
     if mixed_precision is True:
-        target_kpi = get_target_kpi(weights_cr, activation_cr, total_cr, model, representative_data_gen, core_config,
-                                    target_platform_cap)
+        target_kpi, fully_kpi = get_target_kpi(weights_cr, activation_cr, total_cr, model, representative_data_gen,
+                                               core_config,
+                                               target_platform_cap)
         print(f'Target KPI: {target_kpi}')
-    return target_kpi
+    return target_kpi, fully_kpi
 
 
 def get_target_kpi(weights_cr, activation_cr, total_cr, model, representative_data_gen, core_config, tpc):
@@ -24,7 +26,7 @@ def get_target_kpi(weights_cr, activation_cr, total_cr, model, representative_da
 
     return KPI(weights_memory=target_weights_kpi,
                activation_memory=target_activation_kpi,
-               total_memory=target_total_kpi)
+               total_memory=target_total_kpi), kpi_data
 
 
 def kpi2dict(in_kpi: KPI, add_tag: str = "") -> dict:

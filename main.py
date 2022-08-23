@@ -10,31 +10,39 @@ from datetime import datetime
 
 PROJECT_NAME = 'gumbel-rounding'
 FILE_TIME_STAMP = datetime.now().strftime("%d-%b-%Y__%H:%M:%S")
+#
+# MPOVERRIDE_DICT_W = {"resnet18": {8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 2, 1],
+#                                   8.5: [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 2, 1],
+#                                   8.8: [0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2],
+#                                   9.35: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2, 2, 1],
+#                                   9.8: [0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1],
+#                                   11: [0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1],
+#                                   12.5: [0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 2],
+#                                   14.66: [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2]},
+#                      "mbv2": {
+#                          8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+#                              0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 2]
+#                          ,
+#                          8.8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1,
+#                                0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+#                          9.8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1,
+#                                0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 2]
+#                          ,
+#                          11: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1,
+#                               0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 2],
+#                          12.5: [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 2,
+#                                 1, 1, 1, 0, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 2, 2, 2],
+#                          14.66: [0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2,
+#                                  2, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 2, 2, 1, 2, 2, 2, 2, 2, 2]}, }
+# MPOVERRIDE_DICT_T = {"resnet18": {
+#     8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 3, 0, 0, 0, 3, 0, 1, 3, 0, 3, 0, 1, 0, 3, 0, 1, 3, 0, 3, 0, 1, 0, 6,
+#         0, 3]}}
 
-MPOVERRIDE_DICT_W = {"resnet18": {8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 2, 1],
-                                  8.8: [0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2],
-                                  9.8: [0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1],
-                                  11: [0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1],
-                                  12.5: [0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 2],
-                                  14.66: [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2]},
-                     "mbv2": {
-                         8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                             0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 2]
-                         ,
-                         8.8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1,
-                               0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
-                         9.8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1,
-                               0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 2]
-                         ,
-                         11: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1,
-                              0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 2],
-                         12.5: [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 2,
-                                1, 1, 1, 0, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 2, 2, 2],
-                         14.66: [0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2,
-                                 2, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 2, 2, 1, 2, 2, 2, 2, 2, 2]}, }
-MPOVERRIDE_DICT_T = {"resnet18": {
-    8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 3, 0, 0, 0, 3, 0, 1, 3, 0, 3, 0, 1, 0, 3, 0, 1, 3, 0, 3, 0, 1, 0, 6,
-        0, 3]}}
+
+MPOVERRIDE_DICT_T = {"mbv2": {
+    8: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        0, 0, 0, 3, 1, 0, 0, 0, 3, 1, 0, 0, 0, 3, 1, 0, 0, 0, 0, 1, 0, 1, 0, 3, 1, 0, 1, 0, 3, 1, 0, 1, 0, 0, 1, 0, 1,
+        0, 3, 1, 0, 1, 0, 3, 1, 0, 1, 0, 3, 2, 0, 3]}}
 
 
 def argument_handler():
@@ -162,7 +170,7 @@ def main():
         weights_mp = args.weights_cr is not None or args.total_cr is not None
         activation_mp = args.activation_cr is not None or args.total_cr is not None
         if weights_mp and activation_mp:
-            raise NotImplemented
+            configuration_overwrite = MPOVERRIDE_DICT_T[args.model_name][args.total_cr]
         elif weights_mp:
             configuration_overwrite = MPOVERRIDE_DICT_W[args.model_name][args.weights_cr]
         else:
@@ -212,9 +220,10 @@ def main():
         image_size=args.image_size,
         preprocessing=None, seed=args.random_seed)
 
-    target_kpi = quantization_config.build_target_kpi(args.weights_cr, args.activation_cr, args.total_cr,
-                                                      args.mixed_precision, model, representative_data_gen, core_config,
-                                                      target_platform_cap)
+    target_kpi, full_kpi = quantization_config.build_target_kpi(args.weights_cr, args.activation_cr, args.total_cr,
+                                                                args.mixed_precision, model, representative_data_gen,
+                                                                core_config,
+                                                                target_platform_cap)
 
     if args.gptq:
         gptq_config = quantization_config.build_gptq_config(args)
@@ -243,7 +252,8 @@ def main():
     wandb.log({"quantized_results": quant_result * 100,
                "float_results": float_result * 100,
                **quantization_config.kpi2dict(target_kpi),
-               **quantization_config.kpi2dict(quantization_info.final_kpi, "final")})
+               **quantization_config.kpi2dict(quantization_info.final_kpi, "final"),
+               **quantization_config.kpi2dict(full_kpi, "max_kp")})
     print(f'Accuracy of quantized model: {quant_result * 100} (float model: {float_result * 100})')
 
 

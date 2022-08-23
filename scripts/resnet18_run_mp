@@ -4,7 +4,7 @@ only_mp () {
 
   for N in 1 2 3 4 5
   do
-    nc run -C GPUALG python main.py --model_name resnet18 --use_grad_based_weights --mixed_precision --weights_cr $1 --group $1
+    nc run -C GPUALG python main.py --model_name resnet18 --use_grad_based_weights --mixed_precision --weights_cr $1 --group $1-weights-only
   done
 }
 
@@ -24,17 +24,10 @@ function_name () {
   # $4 m2
   for N in 1 2 3 4 5
   do
-     nc run -C GPUALG python main.py --norm_loss --model_name resnet18 --mixed_precision_override --use_grad_based_weights --mixed_precision --weights_cr $1 --gptq --temperature_learning --n_images 2048 --gptq_num_calibration_iter 40000  --lr 0.05 --bias_learning --weights_nbits 4 --jacobian_weights --m8 $2 --m4 $3 --m2 $4 --group mp-improved
+     nc run -C GPUALG python main.py --norm_loss --model_name resnet18 --mixed_precision_override --use_grad_based_weights --mixed_precision --weights_cr $1 --gptq --temperature_learning --n_images 2048 --gptq_num_calibration_iter 40000  --lr 0.05 --bias_learning --weights_nbits 4 --jacobian_weights --m8 $2 --m4 $3 --m2 $4 --group $1-mp
   done
 }
 
-#function_name 8 1 0
-#function_name 8 2 1 1
-#function_name 8.8 2 1 1
-#function_name 9.8 2 1 1
-#function_name 11 2 1 1
-#function_name 12.5 2 1 1
-#function_name 14.66 2 1 1
 
 only_mp_total 6.4
 only_mp_total 6.8
@@ -46,20 +39,21 @@ only_mp_total 9.8
 only_mp_total 11
 only_mp_total 12.5
 only_mp_total 14.66
+
+#only_mp 8.5
+#only_mp 9.35
+#only_mp 10.39
+#only_mp 11.68
+#only_mp 13.35
+#only_mp 15.58
+
+#only_mp 8
 #only_mp 8.8
 #only_mp 9.8
 #only_mp 11
 #only_mp 12.5
 #only_mp 14.66
 
-# function_name 8.8
-# function_name 9.8
-# function_name 11
-# function_name 12.5
-# function_name 14.66
-#nc run -C GPUALG python main.py --model_name resnet18 --mixed_precision_override --use_grad_based_weights --mixed_precision --weights_cr 8 --group mpbaseresnet18wtest
-#nc run -C GPUALG python main.py --model_name resnet18 --mixed_precision_override --use_grad_based_weights --mixed_precision --weights_cr 8.8 --group mpbaseresnet18wtest
-#nc run -C GPUALG python main.py --model_name resnet18 --mixed_precision_override --use_grad_based_weights --mixed_precision --weights_cr 9.8 --group mpbaseresnet18wtest
-#nc run -C GPUALG python main.py --model_name resnet18 --mixed_precision_override --use_grad_based_weights --mixed_precision --weights_cr 11 --group mpbaseresnet18wtest
-#nc run -C GPUALG python main.py --model_name resnet18 --mixed_precision_override --use_grad_based_weights --mixed_precision --weights_cr 12.5 --group mpbaseresnet18wtest
-#nc run -C GPUALG python main.py --model_name resnet18 --mixed_precision_override --use_grad_based_weights --mixed_precision --weights_cr 14.66 --group mpbaseresnet18wtest
+
+#function_name 8.5 2 1 1
+#function_name 9.35 2 1 1

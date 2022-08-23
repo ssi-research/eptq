@@ -57,13 +57,19 @@ def get_mixed_precision_tp_model(mixed_precision_options,
                                                        activation_n_bits=activation_n_bits)
                          for weights_n_bits, activation_n_bits in mixed_precision_options]
 
+    mp_config_dense = [default_config.clone_and_edit(weights_n_bits=weights_n_bits,
+                                                     activation_n_bits=activation_n_bits)
+                       for weights_n_bits, activation_n_bits in mixed_precision_options if weights_n_bits > 2]
+
     return generate_mixed_precision_tp_model(default_config=default_config,
                                              mp_config_options=mp_config_options,
+                                             mp_config_dense=mp_config_dense,
                                              no_quant_config=no_quant_config)
 
 
 def generate_mixed_precision_tp_model(default_config: OpQuantizationConfig,
                                       mp_config_options: List[OpQuantizationConfig],
+                                      mp_config_dense: List[OpQuantizationConfig],
                                       no_quant_config: OpQuantizationConfig) -> TargetPlatformModel:
     """
     Generates TargetPlatformModel with default defined Operators Sets, based on the given base configuration and
@@ -87,8 +93,11 @@ def generate_mixed_precision_tp_model(default_config: OpQuantizationConfig,
         mixed_precision_configuration_options = tp.QuantizationConfigOptions(mp_config_options,
                                                                              base_config=default_config)  # default config is used as based config also
 
+        mixed_precision_configuration_options_dense = tp.QuantizationConfigOptions(mp_config_dense,
+                                                                                   base_config=default_config)  # default config is used as based config also
+
         conv = tp.OperatorsSet("Conv", mixed_precision_configuration_options)
-        fc = tp.OperatorsSet("FullyConnected", mixed_precision_configuration_options)
+        fc = tp.OperatorsSet("FullyConnected", mixed_precision_configuration_options_dense)
 
         any_relu = tp.OperatorsSet("AnyReLU", mixed_precision_configuration_options)
         add = tp.OperatorsSet("Add", mixed_precision_configuration_options)

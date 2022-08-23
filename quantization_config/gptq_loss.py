@@ -39,7 +39,7 @@ def activation_mse(flp_act_list, fxp_act_list, p_vector=None, weights_for_averag
         bias_loss_list.append(bias_loss)
     if weights_for_average_loss is not None:
         return tf.reduce_sum(weights_for_average_loss * tf.stack(loss_values_list)), \
-               tf.reduce_mean(tf.stack(bias_loss_list))
+               tf.reduce_sum(weights_for_average_loss * tf.stack(bias_loss_list))
     else:
         return tf.reduce_mean(tf.stack(loss_values_list)), tf.reduce_mean(tf.stack(bias_loss_list))
 
