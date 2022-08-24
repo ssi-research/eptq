@@ -35,6 +35,6 @@ def keras_model_accuracy_evaluation_timm(model, dataset):
         y_hat = model.predict(x)
         y = y.cpu().numpy()
 
-        count += np.sum(np.argmax(y_hat, axis=-1) == y)
+        count += np.sum(np.argmax(y_hat.squeeze(), axis=-1) == y)
         total += x.shape[0]
     return count / total

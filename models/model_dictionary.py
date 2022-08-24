@@ -1,6 +1,7 @@
 from keras.applications.mobilenet_v2 import MobileNetV2
 from models.model_config import ModelParameters
 from datasets.image_utils import keras_model_accuracy_evaluation_timm
+from models.regnet import regnetx_006, regnetx_032
 from models.tfimm_modified.efficentnet.efficnet_modified import mobilenet_v2_100_m
 from models.tfimm_modified.resnet.resnet_modified import resnet18, resnet50
 
@@ -21,6 +22,20 @@ model_dictionary = {
         model=resnet50,
         float_accuracy=0.8011,
         model_params={'weights': 'imagenet'},
+        is_tfimm=True,
+        evaluation_function=keras_model_accuracy_evaluation_timm,
+        interpolation="bicubic"
+    ),
+    'regnetx_006': ModelParameters(
+        model=regnetx_006,
+        float_accuracy=0.7386,
+        is_tfimm=True,
+        evaluation_function=keras_model_accuracy_evaluation_timm,
+        interpolation="bicubic"
+    ),
+    'regnetx_032': ModelParameters(
+        model=regnetx_032,
+        float_accuracy=0.78164,
         is_tfimm=True,
         evaluation_function=keras_model_accuracy_evaluation_timm,
         interpolation="bicubic"
