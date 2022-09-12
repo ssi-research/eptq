@@ -11,7 +11,8 @@ def build_target_platform_capabilities(mixed_precision: bool, activation_nbits: 
                                        disable_weights_quantization: bool,
                                        disable_activation_quantization: bool, weights_cr, activation_cr, total_cr,
                                        mixed_precision_config: MPCONFIG = MPCONFIG.MP_PARTIAL_CANDIDATES,
-                                       is_symmetric: bool = False):
+                                       is_symmetric: bool = False,
+                                       is_symmetric_act: bool = False):
     # TODO: Add logging
     bit_width_mapping = MP_BITWIDTH_OPTIONS_DICT[mixed_precision_config]
     if mixed_precision:
@@ -24,7 +25,8 @@ def build_target_platform_capabilities(mixed_precision: bool, activation_nbits: 
         target_platform_model = get_mixed_precision_tp_model(mixed_precision_options=mixed_precision_options,
                                                              enable_weights_quantization=not disable_weights_quantization,
                                                              enable_activation_quantization=not disable_activation_quantization,
-                                                             is_symmetric=is_symmetric)
+                                                             is_symmetric=is_symmetric,
+                                                             is_symmetric_act=is_symmetric_act)
         target_platform_cap = generate_keras_tpc(target_platform_model, name=MP_NAME)
     else:
         # TODO: maybe create a dictionary of TP models
@@ -33,6 +35,7 @@ def build_target_platform_capabilities(mixed_precision: bool, activation_nbits: 
                                                             activation_n_bits=activation_nbits,
                                                             enable_weights_quantization=not disable_weights_quantization,
                                                             enable_activation_quantization=not disable_activation_quantization,
-                                                            is_symmetric=is_symmetric)
+                                                            is_symmetric=is_symmetric,
+                                                            is_symmetric_act=is_symmetric_act)
         target_platform_cap = generate_keras_tpc(target_platform_model, name=FIXED_NAME)
     return target_platform_cap, bit_width_mapping

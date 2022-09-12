@@ -6,6 +6,90 @@ from torchvision import datasets, transforms
 from torchvision import models
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from torchvision.models.resnet import ResNet18_Weights, Optional, handle_legacy_interface, Any, ResNet, _resnet, \
+    Callable, conv3x3, Tensor
+
+
+class Add(nn.Module):
+    def forward(self, x, y):
+        return x + y
+
+
+class BasicBlock(nn.Module):
+    expansion: int = 1
+
+    def __init__(
+            self,
+            inplanes: int,
+            planes: int,
+            stride: int = 1,
+            downsample: Optional[nn.Module] = None,
+            groups: int = 1,
+            base_width: int = 64,
+            dilation: int = 1,
+            norm_layer: Optional[Callable[..., nn.Module]] = None,
+    ) -> None:
+        super().__init__()
+        if norm_layer is None:
+            norm_layer = nn.BatchNorm2d
+        if groups != 1 or base_width != 64:
+            raise ValueError("BasicBlock only supports groups=1 and base_width=64")
+        if dilation > 1:
+            raise NotImplementedError("Dilation > 1 not supported in BasicBlock")
+        # Both self.conv1 and self.downsample layers downsample the input when stride != 1
+        self.conv1 = conv3x3(inplanes, planes, stride)
+        self.bn1 = norm_layer(planes)
+        self.relu1 = nn.ReLU(inplace=False)
+        self.relu2 = nn.ReLU(inplace=False)
+        self.conv2 = conv3x3(planes, planes)
+        self.bn2 = norm_layer(planes)
+        self.downsample = downsample
+        self.stride = stride
+        self.add = Add()
+
+    def forward(self, x: Tensor) -> Tensor:
+        identity = x
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu1(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+
+        if self.downsample is not None:
+            identity = self.downsample(x)
+
+        out = self.add(out, identity)
+        out = self.relu2(out)
+
+        return out
+
+
+@handle_legacy_interface(weights=("pretrained", ResNet18_Weights.IMAGENET1K_V1))
+def resnet18(*, weights: Optional[ResNet18_Weights] = None, progress: bool = True, **kwargs: Any) -> ResNet:
+    """ResNet-18 from `Deep Residual Learning for Image Recognition <https://arxiv.org/pdf/1512.03385.pdf>`__.
+
+    Args:
+        weights (:class:`~torchvision.models.ResNet18_Weights`, optional): The
+            pretrained weights to use. See
+            :class:`~torchvision.models.ResNet18_Weights` below for
+            more details, and possible values. By default, no pre-trained
+            weights are used.
+        progress (bool, optional): If True, displays a progress bar of the
+            download to stderr. Default is True.
+        **kwargs: parameters passed to the ``torchvision.models.resnet.ResNet``
+            base class. Please refer to the `source code
+            <https://github.com/pytorch/vision/blob/main/torchvision/models/resnet.py>`_
+            for more details about this class.
+
+    .. autoclass:: torchvision.models.ResNet18_Weights
+        :members:
+    """
+    weights = ResNet18_Weights.verify(weights)
+
+    return _resnet(BasicBlock, [2, 2, 2, 2], weights, progress, **kwargs)
+
 
 VAL_DIR = '/data/projects/swat/datasets_src/ImageNet/ILSVRC2012_img_val_TFrecords'
 
@@ -21,16 +105,17 @@ class Net(nn.Module):
 
 
 def model_register_hook(in_net, list2append):
-    def get_activation():
+    def get_activation(is_add):
         def hook(model, input, output):
-            list2append.append(output)
+            list2append.append((output, is_add))
 
         return hook
 
     for module in list(in_net.modules())[1:]:
         if not isinstance(module, nn.Sequential) and (
-                isinstance(module, nn.BatchNorm2d)):  # or isinstance(module, nn.ReLU)):
-            module.register_forward_hook(get_activation())
+                isinstance(module, nn.BatchNorm2d) or isinstance(module, Add) or isinstance(module,
+                                                                                            nn.Linear)):  # or isinstance(module, nn.ReLU)):
+            module.register_forward_hook(get_activation(isinstance(module, Add)))
 
 
 def compute_hessian_trace(in_net, x, y, in_criterion, in_n_iter, in_device):
@@ -47,7 +132,7 @@ def compute_hessian_trace(in_net, x, y, in_criterion, in_n_iter, in_device):
         output = in_net(xi)
         loss = in_criterion(output, torch.nn.functional.one_hot(yi, 1000).float())
         res_tensor = []
-        for j, activation_tensor in enumerate(activations):  # for each layer's output
+        for j, (activation_tensor, is_add) in enumerate(activations):  # for each layer's output
             grad = autograd.grad(outputs=loss,
                                  inputs=activation_tensor,
                                  retain_graph=True, create_graph=True)[0]
@@ -80,7 +165,9 @@ def compute_jacobian_trace_approx(in_net, in_n_iter, in_input_tensors, in_device
         # layers_jac_trace = []
         layers_jac_norm = []
         per_layer_trace_approx = []
-        for j, activation_tensor in enumerate(activations):  # for each layer's output
+        add_or_conv = []
+        for j, (activation_tensor, is_add) in enumerate(activations):  # for each layer's output
+            add_or_conv.append(is_add)
             jac_trace_approx = []
             for k in range(in_n_iter):  # iterations over random vectors
                 v = torch.randn(output.shape, device=in_device)
@@ -111,7 +198,7 @@ def compute_jacobian_trace_approx(in_net, in_n_iter, in_input_tensors, in_device
         batch_jac_norm.append(layers_jac_norm)
         print(f"Current Jacobian approximation per layer is: \n {np.mean(batch_jac_norm, axis=0)}")
 
-    return np.asarray(batch_jac_norm), np.asarray(per_layer_image_approx)
+    return np.asarray(batch_jac_norm), np.asarray(per_layer_image_approx), add_or_conv
 
 
 def get_default_preprocess():
@@ -139,13 +226,13 @@ def plot_jac_approx_per_layer(final_jac_approx):
 
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    n_iter = 400
-    batch_size = 1
+    n_iter = 50
+    batch_size = 16
     # net = models.mobilenet_v2(pretrained=True).to(device)
-    net = models.resnet18(pretrained=True).to(device)
+    net = resnet18(pretrained=True).to(device)
+    # net = models.regnet_x_400mf(pretrained=True).to(device)
     net = net.eval()
     dl = get_validation_loader(batch_size)
-    # samples = next(iter(dl))[0]
 
     x, y = next(iter(dl))
 
@@ -153,29 +240,21 @@ if __name__ == '__main__':
     input_tensors = [x[i - 1:i, :, :, :] for i in range(1, x.shape[0] + 1)]
     for t in input_tensors:
         t.requires_grad_()
-    batch_jac_norm, jac_norm_approx_array = compute_jacobian_trace_approx(in_net=net, in_n_iter=n_iter,
-                                                                          in_input_tensors=input_tensors,
-                                                                          in_device=device)
+    batch_jac_norm, jac_norm_approx_array, add_or_conv = compute_jacobian_trace_approx(in_net=net, in_n_iter=n_iter,
+                                                                                       in_input_tensors=input_tensors,
+                                                                                       in_device=device)
     trace_mean = np.mean(batch_jac_norm, axis=0)
-    # plt.subplot(1, 2, 1)
-    plt.plot(2 * trace_mean / 1000, label="Label Free Approximation")
-    # plt.title("JTJ Trace")
-    # plt.xlabel("Layer Index")
-    # plt.ylabel(r"$\mathbb{E}[||\mathbf{J}||_F]$")
-    # plt.grid()
-    # plt.savefig("ejn.svg")
-    # plt.cla()
-    # plt.clf()
 
-    # plt.show()
-    # plt.subplot(1, 2, 2)
-    plt.plot(np.mean(results, axis=0), label="Hessian")
+    plt.semilogy(np.mean(results, axis=0), label="Hessian")
+    plt.semilogy([i for i, flag in enumerate(add_or_conv) if flag], np.mean(results, axis=0)[np.asarray(add_or_conv)],
+                 "o", label="Add")
+    plt.semilogy(2 * trace_mean / 1000, "--x", label="Label Free Approximation")
     plt.xlabel("Layer Index")
     plt.ylabel(r"$\mathbb{E}[\mathrm{Tr}(\mathbf{H})]$")
-    # plt.title("Hessian Trace")
     plt.grid()
     plt.legend()
-    plt.savefig("hawq.svg")
+    plt.tight_layout()
+    plt.savefig("compare_hawq_resnet18.svg")
     # plt.cla()
     # plt.clf()
     plt.show()

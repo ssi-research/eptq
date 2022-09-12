@@ -1,3 +1,5 @@
+from collections import Callable
+
 import tensorflow as tf
 import timm
 import torch
@@ -108,7 +110,7 @@ class ModelParameters(object):
 
     def get_representative_dataset_from_classes_and_images(self, in_dir, num_images,
                                                            preprocessing, image_size=224, batch_size=1,
-                                                           random_seed=0):
+                                                           augmentation_pipepline: Callable = None):
         """
             Images returned belong to a set of image_numbers from each class in class numbers.
         class_numbers: The directory of the dataset.
@@ -146,9 +148,6 @@ class ModelParameters(object):
             ds = Subset(ds, list(np.random.randint(0, len(ds) + 1, num_images)))
             dl = torch.utils.data.DataLoader(ds, batch_size, shuffle=True, num_workers=1)
 
-            # dl = timm.data.create_loader(ds, image_size, batch_size, use_prefetcher=False)
-            # _iterator = iter(dl)
-
             class RepresentativeDataset(object):
                 def __init__(self, in_data_loader):
                     self.dl = in_data_loader
@@ -160,17 +159,24 @@ class ModelParameters(object):
                     except StopIteration:
                         self.iter = iter(self.dl)
                         x = next(self.iter)[0]
+                    if augmentation_pipepline is not None:
+                        x = augmentation_pipepline(x)
                     return [torch.permute(x, [0, 2, 3, 1]).cpu().numpy()]
 
             return RepresentativeDataset(dl)
-            # def representative_dataset():
-            #     x = next(_iterator)[0]
-            #     return [torch.permute(x, [0, 2, 3, 1]).cpu().numpy()]
 
         return representative_dataset
 
     def get_representative_dataset(self, representative_dataset_folder, batch_size, n_images, image_size,
-                                   preprocessing=None, seed=0):
+                                   preprocessing=None, seed=0, debug: bool = False,
+                                   augmentation_pipepline: Callable = None):
+        if debug:
+            x = np.random.randn([batch_size, image_size, image_size, 3])
+
+            def representative_dataset():
+                return [x]
+
+            return representative_dataset
         if preprocessing is None:
             preprocessing = get_default_keras_data_preprocess(image_size)
 
@@ -179,4 +185,4 @@ class ModelParameters(object):
             num_images=n_images,
             preprocessing=preprocessing,
             batch_size=batch_size,
-            random_seed=seed)
+            augmentation_pipepline=augmentation_pipepline)

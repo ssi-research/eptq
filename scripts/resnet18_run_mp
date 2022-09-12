@@ -4,7 +4,7 @@ only_mp () {
 
   for N in 1 2 3 4 5
   do
-    nc run -C GPUALG python main.py --model_name resnet18 --use_grad_based_weights --mixed_precision --weights_cr $1 --group $1-weights-only
+    python main.py --model_name resnet18 --use_grad_based_weights --mixed_precision --weights_cr $1 --group $1-248testv2
   done
 }
 
@@ -17,29 +17,34 @@ only_mp_total () {
   done
 }
 #--norm_loss --model_name resnet18 --gptq  --temperature_learning --disable_activation_quantization --lr 0.05 --bias_learning --weights_nbits 4 --jacobian_weights --group base-line
-function_name () {
+gptq_mpw () {
   # $1 cr
   # $2 m8
   # $3 m4
   # $4 m2
+  export GENERAL_COMMAND="--is_symmetric" #
+  export MP_COMMMAND=" --mixed_precision_override --use_grad_based_weights --mixed_precision" #
+  export GPTQ_COMMAND=" --gptq --bias_learning --jacobian_weights --n_images 1024 --gptq_num_calibration_iter 40000 --maximal_temp 1.0 --minimal_temp 0.5 --temperature_learning" # --quantization_parameters_learning_weights
   for N in 1 2 3 4 5
   do
-     nc run -C GPUALG python main.py --norm_loss --model_name resnet18 --mixed_precision_override --use_grad_based_weights --mixed_precision --weights_cr $1 --gptq --temperature_learning --n_images 2048 --gptq_num_calibration_iter 40000  --lr 0.05 --bias_learning --weights_nbits 4 --jacobian_weights --m8 $2 --m4 $3 --m2 $4 --group $1-mp
+     nc run -C GPUALG python main.py --model_name resnet18 $MP_COMMMAND $GPTQ_COMMAND $GENERAL_COMMAND --weights_cr $1 --lr 0.15 --m8 $2 --m4 $3 --m2 $4 --group $1-mp-normloss
   done
 }
 
 
-only_mp_total 6.4
-only_mp_total 6.8
-only_mp_total 7.2
-only_mp_total 7.6
-only_mp_total 8
-only_mp_total 8.8
-only_mp_total 9.8
-only_mp_total 11
-only_mp_total 12.5
-only_mp_total 14.66
+#only_mp_total 6.4
+#only_mp_total 6.8
+#only_mp_total 7.2
+#only_mp_total 7.6
+#only_mp_total 8
+#only_mp_total 8.8
+#only_mp_total 9.8
+#only_mp_total 11
+#only_mp_total 12.5
+#only_mp_total 14.66
 
+gptq_mpw 8.5 1 1 1
+#gptq_mpw 8.5 2 1 1
 #only_mp 8.5
 #only_mp 9.35
 #only_mp 10.39

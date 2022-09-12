@@ -1,7 +1,10 @@
+import model_compression_toolkit
 from model_compression_toolkit import CoreConfig, QuantizationConfig
 from model_compression_toolkit.core.common.mixed_precision.mixed_precision_quantization_config import \
     MixedPrecisionQuantizationConfigV2
 import numpy as np
+import model_compression_toolkit as mct
+from tensorflow.keras.layers import Input, Dense
 
 
 def compute_mse(float_tensor: np.ndarray, fxp_tensor: np.ndarray, norm: bool = True, norm_eps: float = 1e-8) -> float:
@@ -28,15 +31,23 @@ def core_config_builder(mixed_precision, num_calibration_iter, num_samples_for_d
     # TODO: Need to edit the config or is default config is enough?
     quant_config = QuantizationConfig()
     mp_config = None
+    debug_config = model_compression_toolkit.DebugConfig(
+        network_editor=[mct.network_editor.EditRule(filter=mct.network_editor.NodeTypeFilter(Input),
+                                                    action=mct.network_editor.ChangeCandidatesActivationQuantConfigAttr(
+                                                        enable_activation_quantization=False)),
+                        mct.network_editor.EditRule(filter=mct.network_editor.NodeTypeFilter(Dense),
+                                                    action=mct.network_editor.ChangeCandidatesActivationQuantConfigAttr(
+                                                        enable_activation_quantization=False))])
     if mixed_precision:
         # TODO: set distance_fn and after changing default in library
-        mp_config = MixedPrecisionQuantizationConfigV2(compute_distance_fn=compute_mse,
+        mp_config = MixedPrecisionQuantizationConfigV2(compute_distance_fn=None,
                                                        num_of_images=num_samples_for_distance,
                                                        use_grad_based_weights=use_grad_based_weights,
-                                                       output_grad_factor=0.0,
-                                                       norm_weights=False,
+                                                       output_grad_factor=0.1,
+                                                       norm_weights=True,
                                                        configuration_overwrite=configuration_overwrite)
     core_config = CoreConfig(num_calibration_iter,
                              quantization_config=quant_config,
-                             mixed_precision_config=mp_config)
+                             mixed_precision_config=mp_config,
+                             debug_config=debug_config)
     return core_config

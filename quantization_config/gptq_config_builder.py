@@ -8,9 +8,17 @@ import numpy as np
 import wandb
 
 
-def log_func(loss_value, grads, vars, compare_points):
+def log_func(loss_value, grads, vars, compare_points, model_info_dict):
     results_dict = {}
+    tau_dict = {n: tau.numpy() for n, tau in model_info_dict["tau"].items()}
+
+    # gt_dict = {gt.name: gt.numpy() for gt in gumbel_temp}
+    gt_res = {k + "_max": np.max(v) for k, v in tau_dict.items()}
+    gt_res.update({k + "_min": np.min(v) for k, v in tau_dict.items()})
+    gt_res.update({k + "_mean": np.mean(v) for k, v in tau_dict.items()})
+    gt_res.update({k + "_var": np.var(v) for k, v in tau_dict.items()})
     results_dict.update({'loss': loss_value.numpy()})
+    results_dict.update(gt_res)
     wandb.log(results_dict)
 
 
@@ -30,7 +38,7 @@ def build_gptq_config(args):
     optimizer = RAdam(learning_rate=args.lr)
     optimizer_rest = RAdam(learning_rate=args.lr_rest)
     if args.lr_bias:
-        optimizer_bias = RAdam(learning_rate=args.lr_bias)
+        # optimizer_bias = RAdam(learning_rate=args.lr_bias)
         optimizer_bias = tf.keras.optimizers.SGD(learning_rate=args.lr_bias, momentum=0.9)
     else:
         optimizer_bias = None
@@ -38,7 +46,9 @@ def build_gptq_config(args):
         optimizer_quantization_param = tf.keras.optimizers.SGD(learning_rate=args.lr_quantization_param, momentum=0.9)
     else:
         optimizer_quantization_param = None
-    gc = mct.GumbelConfig(temperature_learning=args.temperature_learning)
+    gc = mct.GumbelConfig(temperature_learning=args.temperature_learning, maximal_temp=args.maximal_temp,
+                          minimal_temp=args.minimal_temp,
+                          gumbel_entropy_regularization=args.gamma_temperature)
     return mct.GradientPTQConfig(n_iter=args.gptq_num_calibration_iter,
                                  optimizer=optimizer,
                                  optimizer_rest=optimizer_rest,

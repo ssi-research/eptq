@@ -47,7 +47,6 @@ from tfimm.utils import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 # __all__ = ["ResNetConfig", "BasicBlock"]
 __all__ = ["ResNetConfig", "MBasicBlock"]
 
-
 # TODO: Implement DropBlock, drop_block_rate in timm
 #       See: https://arxiv.org/pdf/1810.12890.pdf)
 from models.tfimm_modified.layers.classifier import ClassifierHead
@@ -109,13 +108,13 @@ class MBasicBlock(object):
     expansion = 1
 
     def __init__(
-        self,
-        cfg: ResNetConfig,
-        nb_channels: int,
-        stride: int,
-        drop_path_rate: float,
-        downsample_layer,
-        **kwargs,
+            self,
+            cfg: ResNetConfig,
+            nb_channels: int,
+            stride: int,
+            drop_path_rate: float,
+            downsample_layer,
+            **kwargs,
     ):
 
         assert cfg.cardinality == 1, "BasicBlock only supports cardinality of 1"
@@ -291,13 +290,13 @@ class MBottleneck(object):
     expansion = 4
 
     def __init__(
-        self,
-        cfg: ResNetConfig,
-        nb_channels: int,
-        stride: int,
-        drop_path_rate: float,
-        downsample_layer,
-        **kwargs,
+            self,
+            cfg: ResNetConfig,
+            nb_channels: int,
+            stride: int,
+            drop_path_rate: float,
+            downsample_layer,
+            **kwargs,
     ):
         self.name = kwargs['name']
 
@@ -532,10 +531,10 @@ def downsample_conv(cfg: ResNetConfig, out_channels: int, stride: int, name: str
 
 
 def make_stage(
-    idx: int,
-    in_channels: int,
-    cfg: ResNetConfig,
-    name: str,
+        idx: int,
+        in_channels: int,
+        cfg: ResNetConfig,
+        name: str,
 ):
     stage_name = f"layer{idx + 1}"  # Weight compatibility requires this name
 
@@ -584,13 +583,6 @@ def make_stage(
 
 
 def generate_resnet_net_keras(cfg: ResNetConfig, **kwargs):
-    cfg_class = ResNetConfig
-
-    # The blur_kernel parameter in BlurPool2D layers is non-trainable and the value
-    # is set during layer construction. The pycharm weights are not stored, hence we
-    # cannot load them
-    keys_to_ignore_on_load_missing = ["blur_kernel"]
-
     act_layer = act_layer_factory(cfg.act_layer)
     norm_layer = norm_layer_factory(cfg.norm_layer)
 

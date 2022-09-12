@@ -7,33 +7,34 @@ from models.model_dictionary import model_dictionary
 import model_compression_toolkit as mct
 import quantization_config
 from datetime import datetime
+from augmentation.augmenetation_piple import AugmentationPipeline
 
 PROJECT_NAME = 'gumbel-rounding'
 FILE_TIME_STAMP = datetime.now().strftime("%d-%b-%Y__%H:%M:%S")
 #
-# MPOVERRIDE_DICT_W = {"resnet18": {8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 2, 1],
-#                                   8.5: [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 2, 1],
-#                                   8.8: [0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2],
-#                                   9.35: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2, 2, 1],
-#                                   9.8: [0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1],
-#                                   11: [0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1],
-#                                   12.5: [0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 2],
-#                                   14.66: [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2]},
-#                      "mbv2": {
-#                          8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-#                              0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 2]
-#                          ,
-#                          8.8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1,
-#                                0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
-#                          9.8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1,
-#                                0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 2]
-#                          ,
-#                          11: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1,
-#                               0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 2],
-#                          12.5: [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 2,
-#                                 1, 1, 1, 0, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 2, 2, 2],
-#                          14.66: [0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2,
-#                                  2, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 2, 2, 1, 2, 2, 2, 2, 2, 2]}, }
+MPOVERRIDE_DICT_W = {"resnet18": {8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 2, 1],
+                                  8.5: [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 2, 1],
+                                  8.8: [0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2],
+                                  9.35: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2, 2, 1],
+                                  9.8: [0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1],
+                                  11: [0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1],
+                                  12.5: [0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 2],
+                                  14.66: [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2]},
+                     "mbv2": {
+                         8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 2]
+                         ,
+                         8.8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1,
+                               0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                         9.8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1,
+                               0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 2]
+                         ,
+                         11: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1,
+                              0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 2],
+                         12.5: [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 2,
+                                1, 1, 1, 0, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 2, 2, 2],
+                         14.66: [0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2,
+                                 2, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 2, 2, 1, 2, 2, 2, 2, 2, 2]}, }
 # MPOVERRIDE_DICT_T = {"resnet18": {
 #     8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 3, 0, 0, 0, 3, 0, 1, 3, 0, 3, 0, 1, 0, 3, 0, 1, 3, 0, 3, 0, 1, 0, 6,
 #         0, 3]}}
@@ -56,6 +57,7 @@ def argument_handler():
     parser.add_argument('--float_evaluation', action='store_true')
     parser.add_argument('--random_seed', type=int, default=0)
     parser.add_argument('--group', type=str)
+    parser.add_argument('--debug', action='store_true')
     #####################################################################
     # Dataset Config
     #####################################################################
@@ -106,9 +108,12 @@ def argument_handler():
     parser.add_argument('--temperature_learning', action='store_true', default=False)
     parser.add_argument('--bias_learning', action='store_true', default=False)
     parser.add_argument('--is_symmetric', action='store_true', default=False)
+    parser.add_argument('--is_symmetric_activation', action='store_true', default=False)
     parser.add_argument('--quantization_parameters_learning_weights', action='store_true', default=False)
     parser.add_argument('--quantization_parameters_learning_activation', action='store_true', default=False)
     parser.add_argument('--rho', type=float, default=0.01)
+    parser.add_argument('--minimal_temp', type=float, default=0.1)
+    parser.add_argument('--maximal_temp', type=float, default=0.5)
     parser.add_argument('--gamma_temperature', type=float, default=0.01)
     parser.add_argument('--lr', type=float, default=0.2,
                         help='GPTQ learning rate')
@@ -158,8 +163,9 @@ def main():
     if args.group is not None:
         group = f"{args.model_name}_{args.gptq}_{args.mixed_precision}_{args.group}"
         name = f"{args.model_name}_{FILE_TIME_STAMP}"
-    wandb.init(project=PROJECT_NAME, group=group, name=name)
-    wandb.config.update(args)
+    if not args.debug:
+        wandb.init(project=PROJECT_NAME, group=group, name=name)
+        wandb.config.update(args)
     utils.set_seed(args.random_seed)
 
     #################################################
@@ -196,7 +202,7 @@ def main():
         args.weights_cr, args.activation_cr,
         args.total_cr,
         mixed_precision_config=mixed_precision_config,
-        is_symmetric=args.is_symmetric)
+        is_symmetric=args.is_symmetric, is_symmetric_act=args.is_symmetric_activation)
     #################################################
     # Generate Model
     #################################################
@@ -218,7 +224,7 @@ def main():
         batch_size=args.batch_size,
         n_images=args.n_images,
         image_size=args.image_size,
-        preprocessing=None, seed=args.random_seed)
+        preprocessing=None, seed=args.random_seed, debug=args.debug)
 
     target_kpi, full_kpi = quantization_config.build_target_kpi(args.weights_cr, args.activation_cr, args.total_cr,
                                                                 args.mixed_precision, model, representative_data_gen,

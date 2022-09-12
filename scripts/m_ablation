@@ -1,10 +1,53 @@
 #!/bin/bash
+# shellcheck disable=SC2037
+export GENERAL_COMMAND="--is_symmetric" #
+# shellcheck disable=SC2037
+export GPTQ_COMMAND=" --gptq --bias_learning --jacobian_weights --n_images 1024 --gptq_num_calibration_iter 40000 --maximal_temp 1.0 --minimal_temp 0.5 --temperature_learning --quantization_parameters_learning_weights" #
+# shellcheck disable=SC2037
+export GROUP=aug
 
 run_resnet18 () {
+  # $1
+  # $2
+  #2 3 4 5
   for N in 1 2 3 4 5
   do
-     nc run -C GPUALG python main.py --norm_loss --model_name resnet18 --gptq  --temperature_learning --disable_activation_quantization --lr 0.05 --bias_learning --weights_nbits 4 --jacobian_weights --group ablation --n_images 2048 --gptq_num_calibration_iter 10000
+     nc run -C GPUALG python main.py  --model_name resnet18 --gamma_temperature $4 --lr $1 --weights_nbits 4 --group $GROUP-$1-$2-$3-$4 $GENERAL_COMMAND $GPTQ_COMMAND --lr_bias $2 --lr_quantization_param $3
   done
 }
-
-run_resnet18
+run_mbv2() {
+  # $1
+  # $2
+  for N in 1 2 3 4 5
+  do
+     nc run -C GPUALG python main.py  --model_name mbv2 --gamma_temperature $4 --lr $1 --weights_nbits 4 --group $GROUP-$1-$2-$3-$4 $GENERAL_COMMAND $GPTQ_COMMAND --lr_bias $2 --lr_quantization_param $3
+  done
+}
+run_mbv2 0.05 1e-4 1e-2 0.0
+#run_mbv2 0.2
+#run_resnet18 0.15 0.1 0.1
+#run_resnet18 0.15 0.01 0.01
+#run_resnet18 0.15 1e-4 1e-2 0.0
+#run_resnet18 0.15 1e-4 1e-2 0.1
+#run_resnet18 0.15 1e-4 1e-2 0.2
+#run_resnet18 0.15 1e-4 1e-2 0.3
+#run_resnet18 0.15 1e-4 1e-2 0.1
+#run_resnet18 0.15 1e-4 1e-2 0.45
+#run_resnet18 0.15 1e-4 1e-2 0.35
+#run_resnet18 0.15 1e-3 1e-2
+#run_resnet18 0.15 1e-2 1e-2
+#run_resnet18 0.15 1e-2 1e-2
+#run_resnet18 0.15 1e-4 1e-3
+#run_resnet18 0.15 1e-4 1e-2
+#run_resnet18 0.1
+#run_resnet18 0.05
+#run_resnet18 0.25
+#run_resnet18 0.3
+#run_resnet18 0.05
+#run_resnet18 0.08
+#run_resnet18 0.09
+#run_resnet18 0.11
+#run_resnet18 0.12
+#run_mbv2 0.2
+#run_resnet18 0.2
+#run_resnet18 0.05
