@@ -29,7 +29,7 @@ run_mbv2 0.01 1e-4 1e-2 0.0
 # run_mbv2 0.2
 # run_resnet18 0.15 0.1 0.1
 # run_resnet18 0.15 0.01 0.01
-# run_resnet18 0.15 1e-4 1e-2 0.0
+# run_resnet18 0.15 1e-4 1e-2 0.0 - Best Result
 # run_resnet18 0.15 1e-4 1e-2 0.1
 # run_resnet18 0.15 1e-4 1e-2 0.2
 # run_resnet18 0.15 1e-4 1e-2 0.3
