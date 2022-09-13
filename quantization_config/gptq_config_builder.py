@@ -8,17 +8,17 @@ import numpy as np
 import wandb
 
 
-def log_func(loss_value, grads, vars, compare_points, model_info_dict):
+def log_func(loss_value, grads, vars, compare_points):
     results_dict = {}
-    tau_dict = {n: tau.numpy() for n, tau in model_info_dict["tau"].items()}
-
-    # gt_dict = {gt.name: gt.numpy() for gt in gumbel_temp}
-    gt_res = {k + "_max": np.max(v) for k, v in tau_dict.items()}
-    gt_res.update({k + "_min": np.min(v) for k, v in tau_dict.items()})
-    gt_res.update({k + "_mean": np.mean(v) for k, v in tau_dict.items()})
-    gt_res.update({k + "_var": np.var(v) for k, v in tau_dict.items()})
+    # tau_dict = {n: tau.numpy() for n, tau in model_info_dict["tau"].items()}
+    #
+    # # gt_dict = {gt.name: gt.numpy() for gt in gumbel_temp}
+    # gt_res = {k + "_max": np.max(v) for k, v in tau_dict.items()}
+    # gt_res.update({k + "_min": np.min(v) for k, v in tau_dict.items()})
+    # gt_res.update({k + "_mean": np.mean(v) for k, v in tau_dict.items()})
+    # gt_res.update({k + "_var": np.var(v) for k, v in tau_dict.items()})
     results_dict.update({'loss': loss_value.numpy()})
-    results_dict.update(gt_res)
+    # results_dict.update(gt_res)
     wandb.log(results_dict)
 
 
