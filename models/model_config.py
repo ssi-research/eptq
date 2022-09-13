@@ -171,7 +171,7 @@ class ModelParameters(object):
                                    preprocessing=None, seed=0, debug: bool = False,
                                    augmentation_pipepline: Callable = None):
         if debug:
-            x = np.random.randn([batch_size, image_size, image_size, 3])
+            x = np.random.randn(batch_size, image_size, image_size, 3)
 
             def representative_dataset():
                 return [x]
