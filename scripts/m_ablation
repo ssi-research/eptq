@@ -2,7 +2,7 @@
 # shellcheck disable=SC2037
 export GENERAL_COMMAND="--is_symmetric" #
 # shellcheck disable=SC2037
-export GPTQ_COMMAND=" --gptq --bias_learning --jacobian_weights --n_images 1024 --gptq_num_calibration_iter 40000 --maximal_temp 1.0 --minimal_temp 0.5 --temperature_learning --quantization_parameters_learning_weights"
+export GPTQ_COMMAND=" --gptq --bias_learning --jacobian_weights --n_images 1024 --gptq_num_calibration_iter 40000 --maximal_temp 1.0 --minimal_temp 0.5 --temperature_learning --quantization_parameters_learning"
 # shellcheck disable=SC2037
 export GROUP=aug
 

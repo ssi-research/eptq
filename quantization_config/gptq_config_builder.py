@@ -54,7 +54,7 @@ def build_gptq_config(args):
                                  optimizer_rest=optimizer_rest,
                                  loss=GPTQMultipleTensorsLoss(norm_loss=args.norm_loss),
                                  train_bias=args.bias_learning,
-                                 quantization_parameters_learning=args.quantization_parameters_learning_weights,
+                                 quantization_parameters_learning=args.quantization_parameters_learning,
                                  rounding_type=rounding_type,
                                  sam_optimization=args.sam_optimization,
                                  rho=args.rho,
@@ -65,5 +65,6 @@ def build_gptq_config(args):
                                  norm_weights=args.norm_weights,
                                  optimizer_bias=optimizer_bias,
                                  optimizer_quantization_parameter=optimizer_quantization_param,
-                                 quantizer_config=gc
+                                 quantizer_config=gc,
+                                 gumbel_scale=args.gumbel_scale
                                  )

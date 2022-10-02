@@ -7,7 +7,7 @@ from models.model_dictionary import model_dictionary
 import model_compression_toolkit as mct
 import quantization_config
 from datetime import datetime
-from augmentation.augmenetation_piple import AugmentationPipeline
+from augmentation.augmenetation_piple import generate_augmentation_function
 
 PROJECT_NAME = 'gumbel-rounding'
 FILE_TIME_STAMP = datetime.now().strftime("%d-%b-%Y__%H:%M:%S")
@@ -58,6 +58,7 @@ def argument_handler():
     parser.add_argument('--random_seed', type=int, default=0)
     parser.add_argument('--group', type=str)
     parser.add_argument('--debug', action='store_true')
+
     #####################################################################
     # Dataset Config
     #####################################################################
@@ -66,6 +67,17 @@ def argument_handler():
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--image_size', type=int, default=224)
     parser.add_argument('--n_images', type=int, default=1024)
+
+    #####################################################################
+    # Augmentations
+    #####################################################################
+    parser.add_argument('--disable_augmentations', action='store_false', default=True)
+    parser.add_argument('--aug_mean', nargs=3, type=float, default=[0.485, 0.456, 0.406])
+    parser.add_argument('--aug_std', nargs=3, type=float, default=[0.229, 0.224, 0.225])
+    parser.add_argument('--aug_alpha', type=float, default=0.25)
+    parser.add_argument('--aug_p', type=float, default=None)
+    parser.add_argument('--aug_dequantization', action='store_true', default=False)
+
     #####################################################################
     # MCT Config
     #####################################################################
@@ -78,6 +90,7 @@ def argument_handler():
                         help='Flag that disables weights quantization')
     parser.add_argument('--disable_activation_quantization', action='store_true', default=False,
                         help='Flag that disables activation quantization')
+
     #####################################################################
     # Mixed Precision Config
     #####################################################################
@@ -97,29 +110,28 @@ def argument_handler():
                         help='Number of samples in distance matrix for distance computation')
     parser.add_argument('--use_grad_based_weights', action='store_true', default=False,
                         help='A flag to enable gradient-based weights for distance metric weighted average')
+
     #####################################################################
     # Gumbel Rounding Config
     #####################################################################
-    parser.add_argument('--gptq', action='store_true', default=False,
-                        help='Enable GPTQ quantization')
-    parser.add_argument('--gptq_num_calibration_iter', type=int, default=20000)
+    parser.add_argument('--gptq', action='store_true', default=False, help='Enable GPTQ quantization')
+    parser.add_argument('--gptq_num_calibration_iter', type=int, default=40000)
     parser.add_argument('--ste_rounding', action='store_true', default=False)
     parser.add_argument('--sam_optimization', action='store_true', default=False)
     parser.add_argument('--temperature_learning', action='store_true', default=False)
     parser.add_argument('--bias_learning', action='store_true', default=False)
     parser.add_argument('--is_symmetric', action='store_true', default=False)
     parser.add_argument('--is_symmetric_activation', action='store_true', default=False)
-    parser.add_argument('--quantization_parameters_learning_weights', action='store_true', default=False)
-    parser.add_argument('--quantization_parameters_learning_activation', action='store_true', default=False)
+    parser.add_argument('--quantization_parameters_learning', action='store_true', default=False)
     parser.add_argument('--rho', type=float, default=0.01)
     parser.add_argument('--minimal_temp', type=float, default=0.1)
     parser.add_argument('--maximal_temp', type=float, default=0.5)
-    parser.add_argument('--gamma_temperature', type=float, default=0.01)
-    parser.add_argument('--lr', type=float, default=0.2,
-                        help='GPTQ learning rate')
+    parser.add_argument('--gamma_temperature', type=float, default=0.1)
+    parser.add_argument('--lr', type=float, default=0.15, help='GPTQ learning rate')
     parser.add_argument('--lr_rest', type=float, default=1e-4, help='GPTQ learning rate')
     parser.add_argument('--lr_bias', type=float, default=1e-4, help='GPTQ learning rate')
-    parser.add_argument('--lr_quantization_param', type=float, default=1e-4, help='GPTQ learning rate')
+    parser.add_argument('--lr_quantization_param', type=float, default=1e-3, help='GPTQ learning rate')
+    parser.add_argument('--gumbel_scale', type=float, default=0.5, help='Gumbel randomization tensor factor')
 
     parser.add_argument('--m8', type=int, default=1)
     parser.add_argument('--m7', type=int, default=1)
@@ -219,12 +231,21 @@ def main():
     #################################################
     # Get datasets
     #################################################
+    if args.disable_augmentations:
+        augmentation_pipeline = None
+    else:
+        augmentation_pipeline = generate_augmentation_function(tuple(args.aug_mean), tuple(args.aug_std),
+                                                               args.aug_alpha, args.aug_p, args.aug_dequantization)
+
     representative_data_gen = model_cfg.get_representative_dataset(
         representative_dataset_folder=args.representative_dataset_folder,
         batch_size=args.batch_size,
         n_images=args.n_images,
         image_size=args.image_size,
-        preprocessing=None, seed=args.random_seed, debug=args.debug)
+        preprocessing=None,
+        seed=args.random_seed,
+        debug=args.debug,
+        augmentation_pipepline=augmentation_pipeline)
 
     target_kpi, full_kpi = quantization_config.build_target_kpi(args.weights_cr, args.activation_cr, args.total_cr,
                                                                 args.mixed_precision, model, representative_data_gen,

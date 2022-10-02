@@ -1,4 +1,3 @@
-import torch
 from torch import nn
 from augmentation.normalization import DeNormalization, Normalization
 from augmentation.dequantization import DeQuantization
@@ -8,23 +7,21 @@ from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 
 
 class AugmentationPipeline(object):
-    def __init__(self, alpha=0.5, p=0.5, dequantization=True, mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD):
+    def __init__(self, alpha=None, p=None, dequantization=True, mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD):
         self.norm = Normalization(mean, std)
         self.denorm = DeNormalization(mean, std)
-        self.mix_quant = MixedQuantized(alpha)
-        self.lsb_noise = LSBNoise(p)
-        if dequantization:
-            self.de_quant = DeQuantization()
-        else:
-            self.de_quant = nn.Identity()
+
+        self.mix_quant = nn.Identity() if alpha is None else MixedQuantized(alpha)
+        self.lsb_noise = nn.Identity() if p is None else LSBNoise(p)
+        self.de_quant = nn.Identity() if not dequantization else DeQuantization()
 
     def __call__(self, x):
-        x_int = self.denorm(x)
-        x_mix = self.mix_quant(x_int)
-        x_lsb = self.lsb_noise(x_mix)
-        x_dequant = self.de_quant(x_lsb)
-        return self.norm(x_dequant)
+        x = self.denorm(x)
+        x = self.mix_quant(x)
+        x = self.lsb_noise(x)
+        x = self.de_quant(x)
+        return self.norm(x)
 
 
-def generate_augmentation_function(mean, std, alpha=0.5, p=0.5, dequantization=True):
-    return AugmentationPipeline(mean, std, alpha, p, dequantization)
+def generate_augmentation_function(mean, std, alpha=None, p=None, dequantization=True):
+    return AugmentationPipeline(mean=mean, std=std, alpha=alpha, p=p, dequantization=dequantization)

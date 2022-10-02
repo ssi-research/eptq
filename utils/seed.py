@@ -1,12 +1,9 @@
-# import random
-# import numpy as np
-# import torch
-# import tensorflow as tf
+import random
+import numpy as np
+import torch
 
 
 def set_seed(seed: int):
-    pass
-    # torch.random.manual_seed(seed)
-    # tf.random.set_seed(seed)
-    # np.random.seed(seed)
-    # random.seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.manual_seed(seed)
