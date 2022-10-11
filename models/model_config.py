@@ -143,7 +143,8 @@ class ModelParameters(object):
             def representative_dataset():
                 return [next(iterator)]
         else:
-            transform = timm.data.create_transform(image_size, interpolation=self.interpolation)
+            transform = timm.data.create_transform(image_size, interpolation=self.interpolation, color_jitter=None,
+                                                   is_training=True)
             ds = timm.data.create_dataset("", in_dir, transform=transform)
             ds = Subset(ds, list(np.random.randint(0, len(ds) + 1, num_images)))
             dl = torch.utils.data.DataLoader(ds, batch_size, shuffle=True, num_workers=1)
