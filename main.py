@@ -13,28 +13,19 @@ PROJECT_NAME = 'gumbel-rounding'
 FILE_TIME_STAMP = datetime.now().strftime("%d-%b-%Y__%H:%M:%S")
 #
 MPOVERRIDE_DICT_W = {"resnet18": {8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 2, 1],
-                                  8.5: [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 2, 1],
-                                  8.8: [0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2],
-                                  9.35: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2, 2, 1],
-                                  9.8: [0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1],
-                                  11: [0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1],
-                                  12.5: [0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 2],
-                                  14.66: [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2]},
+                                  8.8: [0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2],},
                      "mbv2": {
                          8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                              0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 2]
                          ,
                          8.8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1,
-                               0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
-                         9.8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1,
-                               0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 2]
-                         ,
-                         11: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1,
-                              0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 2],
-                         12.5: [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 2,
-                                1, 1, 1, 0, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 2, 2, 2],
-                         14.66: [0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2,
-                                 2, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 2, 2, 1, 2, 2, 2, 2, 2, 2]}, }
+                               0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],},
+                     "regnetx_006": {
+                         8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1],
+                         8.8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                               1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 2, 1, 1],
+                     }}
 # MPOVERRIDE_DICT_T = {"resnet18": {
 #     8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 3, 0, 0, 0, 3, 0, 1, 3, 0, 3, 0, 1, 0, 3, 0, 1, 3, 0, 3, 0, 1, 0, 6,
 #         0, 3]}}
@@ -126,12 +117,12 @@ def argument_handler():
     parser.add_argument('--rho', type=float, default=0.01)
     parser.add_argument('--minimal_temp', type=float, default=0.1)
     parser.add_argument('--maximal_temp', type=float, default=0.5)
-    parser.add_argument('--gamma_temperature', type=float, default=0.1)
+    parser.add_argument('--gamma_temperature', type=float, default=0.0)
     parser.add_argument('--lr', type=float, default=0.15, help='GPTQ learning rate')
     parser.add_argument('--lr_rest', type=float, default=1e-4, help='GPTQ learning rate')
     parser.add_argument('--lr_bias', type=float, default=1e-4, help='GPTQ learning rate')
     parser.add_argument('--lr_quantization_param', type=float, default=1e-3, help='GPTQ learning rate')
-    parser.add_argument('--gumbel_scale', type=float, default=0.5, help='Gumbel randomization tensor factor')
+    parser.add_argument('--gumbel_scale', type=float, default=1.0, help='Gumbel randomization tensor factor')
 
     parser.add_argument('--m8', type=int, default=1)
     parser.add_argument('--m7', type=int, default=1)

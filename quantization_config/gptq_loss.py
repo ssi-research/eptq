@@ -62,7 +62,9 @@ class GPTQMultipleTensorsLoss:
     #         total_loss = total_loss + np.exp(-alpha) * t
     #     return total_loss
 
-    def __call__(self, fxp_act_list: List[tf.Tensor], flp_act_list: List[tf.Tensor],
+    def __call__(self,
+                 fxp_act_list: List[tf.Tensor],
+                 flp_act_list: List[tf.Tensor],
                  fxp_w_list: List[List[tf.Tensor]],
                  flp_w_list: List[List[tf.Tensor]],
                  act_bn_mean: List,

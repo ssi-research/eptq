@@ -2,9 +2,11 @@
 # shellcheck disable=SC2037
 export GENERAL_COMMAND="--is_symmetric" #
 # shellcheck disable=SC2037
-export GPTQ_COMMAND=" --gptq --bias_learning --jacobian_weights --n_images 1024 --gptq_num_calibration_iter 40000 --maximal_temp 1.0 --minimal_temp 0.5 --temperature_learning --quantization_parameters_learning"
+export GPTQ_COMMAND=" --gptq --bias_learning --n_images 1024 --gptq_num_calibration_iter 40000 --maximal_temp 1.0 --minimal_temp 0.5 --temperature_learning --quantization_parameters_learning --jacobian_weights" #
 # shellcheck disable=SC2037
-export GROUP=aug
+export GROUP=baseline
+export GROUP_MP=mpruns
+export GROUP_MP_GPTQ=mpruns_gptq_m8_2
 
 run_resnet18 () {
   # $1
@@ -12,7 +14,7 @@ run_resnet18 () {
   #2 3 4 5
   for N in 1 2 3 4 5
   do
-     nc run -C GPUALG python main.py  --model_name resnet18 --gamma_temperature $4 --lr $1 --weights_nbits 4 --group $GROUP-$1-$2-$3-$4 $GENERAL_COMMAND $GPTQ_COMMAND --lr_bias $2 --lr_quantization_param $3
+     nc run -C GPUALG python main.py  --model_name resnet18 --gamma_temperature $4 --lr $1 --weights_nbits 4 --group $GROUP-$1-$2-$3-$4-$5 $GENERAL_COMMAND $GPTQ_COMMAND --lr_bias $2 --lr_quantization_param $3 --gumbel_scale $5 --random_seed $N
   done
 }
 run_mbv2() {
@@ -20,36 +22,69 @@ run_mbv2() {
   # $2
   for N in 1 2 3 4 5
   do
-     nc run -C GPUALG python main.py  --model_name mbv2 --gamma_temperature $4 --lr $1 --weights_nbits 4 --group $GROUP-$1-$2-$3-$4 $GENERAL_COMMAND $GPTQ_COMMAND --lr_bias $2 --lr_quantization_param $3
+     nc run -C GPUALG python main.py  --model_name mbv2 --gamma_temperature $4 --lr $1 --weights_nbits 4 --group $GROUP-$1-$2-$3-$4-$5 $GENERAL_COMMAND $GPTQ_COMMAND --lr_bias $2 --lr_quantization_param $3 --random_seed $N --gumbel_scale $5
   done
 }
 
-run_mbv2 0.05 1e-4 1e-3 0.0
-run_mbv2 0.01 1e-4 1e-2 0.0
-# run_mbv2 0.2
-# run_resnet18 0.15 0.1 0.1
-# run_resnet18 0.15 0.01 0.01
-# run_resnet18 0.15 1e-4 1e-2 0.0 - Best Result
-# run_resnet18 0.15 1e-4 1e-2 0.1
-# run_resnet18 0.15 1e-4 1e-2 0.2
-# run_resnet18 0.15 1e-4 1e-2 0.3
-# run_resnet18 0.15 1e-4 1e-2 0.1
-# run_resnet18 0.15 1e-4 1e-2 0.45
-# run_resnet18 0.15 1e-4 1e-2 0.35
-# run_resnet18 0.15 1e-3 1e-2
-# run_resnet18 0.15 1e-2 1e-2
-# run_resnet18 0.15 1e-2 1e-2
-# run_resnet18 0.15 1e-4 1e-3
-# run_resnet18 0.15 1e-4 1e-2
-# run_resnet18 0.1
-# run_resnet18 0.05
-# run_resnet18 0.25
-# run_resnet18 0.3
-# run_resnet18 0.05
-# run_resnet18 0.08
-# run_resnet18 0.09
-# run_resnet18 0.11
-# run_resnet18 0.12
-# run_mbv2 0.2
-# run_resnet18 0.2
-# run_resnet18 0.05
+run_regnet() {
+  # $1
+  # $2
+  for N in 1 2 3 4 5
+  do
+     nc run -C GPUALG python main.py  --model_name regnetx_006 --gamma_temperature $4 --lr $1 --weights_nbits 4 --group $GROUP-$1-$2-$3-$4-$5 $GENERAL_COMMAND $GPTQ_COMMAND --lr_bias $2 --lr_quantization_param $3 --random_seed $N --gumbel_scale $5
+  done
+}
+
+
+run_only_mp () {
+  # $1 cr
+  # $2 model
+
+  for N in 1 2 3 4 5
+  do
+    nc run -C GPUALG python main.py --model_name $2 --use_grad_based_weights --mixed_precision --weights_cr $1 --group MP-ONLY-$1-$2 --random_seed $N  $GENERAL_COMMAND
+  done
+}
+
+run_mp () {
+  # $1 cr
+
+  for N in 1 2 3 4 5
+  do
+    nc run -C GPUALG python main.py --model_name regnetx_006 --mixed_precision_override --mixed_precision --group $GROUP_MP_GPTQ-$2-$3-$4-$5-$6 --random_seed $N  $GENERAL_COMMAND $GPTQ_COMMAND  --weights_cr $1  --lr $2 --lr_bias $3 --lr_quantization_param $4 --gamma_temperature $5  --gumbel_scale $6 --m8 2
+  done
+}
+
+
+########################################
+# Baseline config
+########################################
+#run_mbv2 0.05 1e-4 1e-3 0.0 0.85
+#run_resnet18 0.1 1e-4 1e-3 0.05 0.5
+#run_regnet 0.05 1e-4 1e-3 0.1 0.5
+########################################
+# MP ResNet
+########################################
+#run_regnet_only_mp 8
+#run_regnet_only_mp 8.8
+#run_regnet_only_mp 9.8
+#run_regnet_only_mp 11
+#run_regnet_only_mp 12.5
+########################################
+# MP MBV2
+########################################
+#run_only_mp 8 mbv2
+#run_only_mp 8.8 mbv2
+########################################
+# MP RegNet
+########################################
+#run_only_mp 8 regnetx_006
+#run_only_mp 8.8 regnetx_006
+########################################
+# MP RegNet + GPTQ
+########################################
+run_mp 8 0.05 3e-4 3e-3 0.1 0.5
+#run_regnet_mp 8.8 0.05 1e-4 1e-3 0.1 0.5
+#run_regnet_mp 9.8 0.05 1e-4 1e-3 0.1 0.5
+#run_regnet_mp 11 0.05 1e-4 1e-3 0.1 0.5
+#run_regnet_mp 12.5 0.05 1e-4 1e-3 0.1 0.5
