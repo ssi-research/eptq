@@ -168,8 +168,10 @@ class ModelParameters(object):
                  is_tfimm: bool = False,
                  interpolation="bilinear",
                  image_size=(224, 224, 3),
+                 name=None,
 
                  ):
+        self.name = name
         self.model = model
         self.float_accuracy = float_accuracy
         self.preprocess = preprocess
@@ -190,7 +192,7 @@ class ModelParameters(object):
 
             pt_model = timm.create_model(cfg.url.split("]")[-1], pretrained=True)
             pt_state_dict = pt_model.state_dict()
-            if cfg.name == "resnet18":
+            if self.name == "resnet18":
                 state_dict_temp = torch.load("/data/projects/swat/users/haih/gumbel-rounding/models/resnet18.pth")
                 pt_state_dict = {target: state_dict_temp[source] for target, source in resnet18dict.items()}
             load_pytorch_weights_in_tf2_model(model, pt_state_dict)
