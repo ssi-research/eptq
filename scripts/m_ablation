@@ -2,36 +2,37 @@
 # shellcheck disable=SC2037
 export GENERAL_COMMAND="--is_symmetric" #
 # shellcheck disable=SC2037
-export GPTQ_COMMAND=" --gptq --bias_learning --n_images 1024 --gptq_num_calibration_iter 40000 --maximal_temp 1.0 --minimal_temp 0.5 --temperature_learning --quantization_parameters_learning --jacobian_weights" #
+export GPTQ_COMMAND=" --gptq --bias_learning --n_images 1024 --gptq_num_calibration_iter 80000 --maximal_temp 1.0 --minimal_temp 0.5 --temperature_learning --quantization_parameters_learning --jacobian_weights" #
 # shellcheck disable=SC2037
-export GROUP=baseline
-export GROUP_MP=mpruns
-export GROUP_MP_GPTQ=mpruns_gptq_m8_2
+export GROUP=baseline_extra
+export GROUP_MP=mpruns-dense-last
+export GROUP_MP_GPTQ=mpruns_gptq_mbv2_ab
+export GROUP_MP_TOTAL_GPTQ=mpruns_gptq_total
 
-run_resnet18 () {
+#run_resnet18 () {
+#  # $1
+#  # $2
+#  #2 3 4 5
+#  for N in 1 2 3 4 5
+#  do
+#     nc run -C GPUALG python main.py  --model_name resnet18 --gamma_temperature $4 --lr $1 --weights_nbits 4 --group $GROUP-$1-$2-$3-$4-$5 $GENERAL_COMMAND $GPTQ_COMMAND --lr_bias $2 --lr_quantization_param $3 --gumbel_scale $5 --random_seed $N
+#  done
+#}
+#run_mbv2() {
+#  # $1
+#  # $2
+#  for N in 1 2 3 4 5
+#  do
+#     nc run -C GPUALG python main.py  --model_name mbv2 --gamma_temperature $4 --lr $1 --weights_nbits 4 --group $GROUP-$1-$2-$3-$4-$5 $GENERAL_COMMAND $GPTQ_COMMAND --lr_bias $2 --lr_quantization_param $3 --random_seed $N --gumbel_scale $5
+#  done
+#}
+#
+run_gptq_only() {
   # $1
   # $2
-  #2 3 4 5
   for N in 1 2 3 4 5
   do
-     nc run -C GPUALG python main.py  --model_name resnet18 --gamma_temperature $4 --lr $1 --weights_nbits 4 --group $GROUP-$1-$2-$3-$4-$5 $GENERAL_COMMAND $GPTQ_COMMAND --lr_bias $2 --lr_quantization_param $3 --gumbel_scale $5 --random_seed $N
-  done
-}
-run_mbv2() {
-  # $1
-  # $2
-  for N in 1 2 3 4 5
-  do
-     nc run -C GPUALG python main.py  --model_name mbv2 --gamma_temperature $4 --lr $1 --weights_nbits 4 --group $GROUP-$1-$2-$3-$4-$5 $GENERAL_COMMAND $GPTQ_COMMAND --lr_bias $2 --lr_quantization_param $3 --random_seed $N --gumbel_scale $5
-  done
-}
-
-run_regnet() {
-  # $1
-  # $2
-  for N in 1 2 3 4 5
-  do
-     nc run -C GPUALG python main.py  --model_name regnetx_006 --gamma_temperature $4 --lr $1 --weights_nbits 4 --group $GROUP-$1-$2-$3-$4-$5 $GENERAL_COMMAND $GPTQ_COMMAND --lr_bias $2 --lr_quantization_param $3 --random_seed $N --gumbel_scale $5
+     nc run -C GPUALG python main.py  --model_name $1 --gamma_temperature $5 --lr $2 --weights_nbits $7 --group $GROUP-$1-$2-$3-$4-$5-$6-$7 $GENERAL_COMMAND $GPTQ_COMMAND --lr_bias $3 --lr_quantization_param $4 --random_seed $N --gumbel_scale $6
   done
 }
 
@@ -42,16 +43,36 @@ run_only_mp () {
 
   for N in 1 2 3 4 5
   do
-    nc run -C GPUALG python main.py --model_name $2 --use_grad_based_weights --mixed_precision --weights_cr $1 --group MP-ONLY-$1-$2 --random_seed $N  $GENERAL_COMMAND
+    nc run -C GPUALG python main.py --model_name $2 --use_grad_based_weights --mixed_precision --weights_cr $1 --group MP-ONLY-$1-$3 --random_seed $N  $GENERAL_COMMAND
   done
 }
 
-run_mp () {
+run_only_mp_total () {
   # $1 cr
+  # $2 model
 
   for N in 1 2 3 4 5
   do
-    nc run -C GPUALG python main.py --model_name regnetx_006 --mixed_precision_override --mixed_precision --group $GROUP_MP_GPTQ-$2-$3-$4-$5-$6 --random_seed $N  $GENERAL_COMMAND $GPTQ_COMMAND  --weights_cr $1  --lr $2 --lr_bias $3 --lr_quantization_param $4 --gamma_temperature $5  --gumbel_scale $6 --m8 2
+    nc run -C GPUALG python main.py --model_name $2 --use_grad_based_weights --mixed_precision --total_cr $1 --group MP-TOTAL-$1-$2 --random_seed $N  $GENERAL_COMMAND
+  done
+}
+
+
+run_mp () {
+  # $1 cr
+  #
+  for N in 1 2 3 4 5
+  do
+    nc run -C GPUALG python main.py --model_name $1 --mixed_precision_override --mixed_precision --group $GROUP_MP_GPTQ-$3-$4-$5-$6-$7-$8 --random_seed $N  $GENERAL_COMMAND $GPTQ_COMMAND  --weights_cr $2  --lr $3 --lr_bias $4 --lr_quantization_param $5 --gamma_temperature $6  --gumbel_scale $7 --m8 $8
+  done
+}
+
+run_mp_total () {
+  # $1 cr
+  #
+  for N in 1 2 3 4 5
+  do
+    nc run -C GPUALG python main.py --model_name $1 --mixed_precision_override --mixed_precision --group $GROUP_MP_TOTAL_GPTQ-$3-$4-$5-$6-$7-$8 --random_seed $N  $GENERAL_COMMAND $GPTQ_COMMAND  --total_cr $2  --lr $3 --lr_bias $4 --lr_quantization_param $5 --gamma_temperature $6  --gumbel_scale $7 --m8 $8
   done
 }
 
@@ -59,22 +80,69 @@ run_mp () {
 ########################################
 # Baseline config
 ########################################
-#run_mbv2 0.05 1e-4 1e-3 0.0 0.85
+#run_gptq_only mbv2 0.05 1e-4 1e-3 0.0 0.85 4
+#run_gptq_only resnet18 0.1 1e-4 2e-3 0.05 0.5 4
+#run_gptq_only regnetx_006 0.05 1e-4 1e-3 0.1 0.5 2
+
 #run_resnet18 0.1 1e-4 1e-3 0.05 0.5
-#run_regnet 0.05 1e-4 1e-3 0.1 0.5
+
 ########################################
-# MP ResNet
+# MP RegNet Total
 ########################################
-#run_regnet_only_mp 8
-#run_regnet_only_mp 8.8
-#run_regnet_only_mp 9.8
-#run_regnet_only_mp 11
-#run_regnet_only_mp 12.5
+#run_only_mp_total 6 regnetx_006
+#run_only_mp_total 7 regnetx_006
+#run_only_mp_total 8.8 regnetx_006
+#run_only_mp_total 9.8 regnetx_006
+#run_only_mp_total 11 regnetx_006
+#run_only_mp_total 12.5 regnetx_006
+########################################
+# MP ResMet
+########################################
+#run_only_mp 8 resnet18
+#run_only_mp 8.8 resnet18
+#run_only_mp 9.8 resnet18
+#run_only_mp 11 resnet18
+#run_only_mp 12.5 resnet18
+########################################
+# MP ResNet + GPTQ
+########################################
+#run_mp resnet18 8 0.1 1e-4 2e-3 0.05 0.5 2
+#run_mp resnet18 8.8 0.1 1e-4 2e-3 0.05 0.5 2
+#run_mp resnet18 9.8 0.1 1e-4 2e-3 0.05 0.5 2
+#run_mp resnet18 11 0.1 1e-4 2e-3 0.05 0.5 2
+#run_mp resnet18 12.5 0.1 1e-4 2e-3 0.05 0.5 2
 ########################################
 # MP MBV2
 ########################################
-#run_only_mp 8 mbv2
-#run_only_mp 8.8 mbv2
+#run_only_mp 8 mbv2 mbv2mp-up
+#run_only_mp 8.8 mbv2 mbv2mp-up
+#run_only_mp 11 mbv2 mbv2mp-up
+#run_only_mp 12.5 mbv2 mbv2mp-up
+########################################
+# MP Total MBV2
+########################################
+#run_only_mp_total 8 mbv2
+#run_only_mp_total 9.8 mbv2
+#run_only_mp_total 11 mbv2
+#run_only_mp_total 12.5 mbv2
+########################################
+# MP+GPTQ ResNet18
+########################################
+#run_mp regnetx_006 8 0.05 3e-4 3e-3 0.1 0.5 2
+#run_mp regnetx_006 8.8 0.05 3e-4 3e-3 0.1 0.5 2
+#run_mp regnetx_006 9.8 0.05 3e-4 3e-3 0.1 0.5 2
+#run_mp regnetx_006 11 0.05 3e-4 3e-3 0.1 0.5 2
+########################################
+# MP+GPTQ MBV2
+########################################
+#run_mp mbv2 8 0.05 1e-4 1e-3 0.0 0.85 2
+# run_mp mbv2 8 0.1 1e-4 1e-3 0.0 0.85 2
+# run_mp mbv2 8 0.2 1e-4 1e-3 0.0 0.85 2
+#run_mp mbv2 8 0.05 1e-4 1e-3 0.0 1.0 3
+#run_mp mbv2 8 0.05 1e-4 1e-3 0.05 1.0 2
+#run_mp mbv2 8 0.05 1e-4 1e-3 0.0 0.7 2
+#run_mp mbv2 8 0.05 1e-4 1e-3 0.0 0.6 2
+#run_mp mbv2 8 0.05 1e-4 1e-3 0.0 0.5 2
 ########################################
 # MP RegNet
 ########################################
@@ -83,8 +151,18 @@ run_mp () {
 ########################################
 # MP RegNet + GPTQ
 ########################################
-#run_mp 8 0.05 3e-4 3e-3 0.1 0.5
-#run_regnet_mp 8.8 0.05 1e-4 1e-3 0.1 0.5
-#run_regnet_mp 9.8 0.05 1e-4 1e-3 0.1 0.5
-#run_regnet_mp 11 0.05 1e-4 1e-3 0.1 0.5
-#run_regnet_mp 12.5 0.05 1e-4 1e-3 0.1 0.5
+#run_mp regnetx_006 8 0.05 3e-4 3e-3 0.1 0.5 2
+#run_mp regnetx_006 8.8 0.05 3e-4 3e-3 0.1 0.5 2
+#run_mp regnetx_006 9.8 0.05 3e-4 3e-3 0.1 0.5 2
+#run_mp regnetx_006 11 0.05 3e-4 3e-3 0.1 0.5 2
+#run_mp regnetx_006 12.5 0.05 3e-4 3e-3 0.1 0.5 2
+########################################
+# MP RegNet + GPTQ + Total
+########################################
+#run_mp_total regnetx_006 6 0.05 3e-4 3e-3 0.1 0.5 2
+#run_mp_total regnetx_006 7 0.05 3e-4 3e-3 0.1 0.5 2
+#run_mp_total regnetx_006 8 0.05 3e-4 3e-3 0.1 0.5 2
+#run_mp_total regnetx_006 8.8 0.05 3e-4 3e-3 0.1 0.5 2
+#run_mp_total regnetx_006 9.8 0.05 3e-4 3e-3 0.1 0.5 2
+#run_mp_total regnetx_006 11 0.05 3e-4 3e-3 0.1 0.5 2
+#run_mp_total regnetx_006 12.5 0.05 3e-4 3e-3 0.1 0.5 2

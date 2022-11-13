@@ -192,9 +192,9 @@ class ModelParameters(object):
 
             pt_model = timm.create_model(cfg.url.split("]")[-1], pretrained=True)
             pt_state_dict = pt_model.state_dict()
-            if self.name == "resnet18":
-                state_dict_temp = torch.load("/data/projects/swat/users/haih/gumbel-rounding/models/resnet18.pth")
-                pt_state_dict = {target: state_dict_temp[source] for target, source in resnet18dict.items()}
+            # if self.name == "resnet18":
+            #     state_dict_temp = torch.load("/data/projects/swat/users/haih/gumbel-rounding/models/resnet18.pth")
+            #     pt_state_dict = {target: state_dict_temp[source] for target, source in resnet18dict.items()}
             load_pytorch_weights_in_tf2_model(model, pt_state_dict)
 
             return model
