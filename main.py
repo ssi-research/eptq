@@ -3,7 +3,10 @@ import wandb
 import utils
 from constants import VAL_DIR, TRAIN_DIR
 
-from models.model_dictionary import model_dictionary
+from models.model_dictionary import model_dictionary as keras_model_dictionary
+from models.pytorch_model_dictionary import pytorch_model_dictionary
+from quantization_config.target_platform.tensorflow_tpc import generate_keras_tpc
+from quantization_config.target_platform.pytorch_tpc import generate_pytorch_tpc
 import model_compression_toolkit as mct
 import quantization_config
 from datetime import datetime
@@ -76,6 +79,7 @@ def argument_handler():
     #####################################################################
     parser.add_argument('--model_name', '-m', type=str, required=True,
                         help='The name of the model to run')
+    parser.add_argument('--framework', '-f', type=str, default='tensorflow', help="Framework support: tensorflow or pytorch")
     parser.add_argument('--project_name', type=str, default=PROJECT_NAME)
     parser.add_argument('--float_evaluation', action='store_true')
     parser.add_argument('--random_seed', type=int, default=0)
@@ -202,9 +206,27 @@ def main():
         group = f"{args.model_name}_{args.gptq}_{args.mixed_precision}_{args.group}"
         name = f"{args.model_name}_{FILE_TIME_STAMP}"
     if not args.debug:
-        wandb.init(project=PROJECT_NAME, group=group, name=name)
+        wandb.init(project=args.project_name, group=group, name=name)
         wandb.config.update(args)
     utils.set_seed(args.random_seed)
+
+    #################################################
+    # Framework: set specific API
+    #################################################
+    if args.framework == "tensorflow":
+        model_dictionary = keras_model_dictionary
+        post_training_quantization_experimental = mct.keras_post_training_quantization_experimental
+        gradient_post_training_quantization_experimental = mct.keras_gradient_post_training_quantization_experimental
+        generate_fw_tpc = generate_keras_tpc
+        build_gptq_config = quantization_config.build_gptq_config
+    elif args.framework == "pytorch":
+        model_dictionary = pytorch_model_dictionary
+        post_training_quantization_experimental = mct.pytorch_post_training_quantization_experimental
+        gradient_post_training_quantization_experimental = mct.pytorch_gradient_post_training_quantization_experimental
+        generate_fw_tpc = generate_pytorch_tpc
+        build_gptq_config = quantization_config.pytorch_build_gptq_config
+    else:
+        assert False, "Framework is not supported!"
 
     #################################################
     # Build quantization configuration
@@ -232,6 +254,7 @@ def main():
     # The model determines the quantization methods to use during the MCT optimization process.
     mixed_precision_config = utils.MPCONFIG.MP_FULL_CANDIDATES if args.mp_all_bits else utils.MPCONFIG.MP_PARTIAL_CANDIDATES
     target_platform_cap, bit_width_mapping = quantization_config.build_target_platform_capabilities(
+        generate_fw_tpc,
         args.mixed_precision,
         args.activation_nbits,
         args.weights_nbits,
@@ -278,23 +301,23 @@ def main():
                                                                 core_config,
                                                                 target_platform_cap)
 
-    if args.gptq:
-        gptq_config = quantization_config.build_gptq_config(args)
 
+    if args.gptq:
+        gptq_config = build_gptq_config(args)
         quantized_model, quantization_info = \
-            mct.keras_gradient_post_training_quantization_experimental(model,
-                                                                       representative_data_gen,
-                                                                       gptq_config=gptq_config,
-                                                                       target_kpi=target_kpi,
-                                                                       core_config=core_config,
-                                                                       target_platform_capabilities=target_platform_cap)
+            gradient_post_training_quantization_experimental(model,
+                                                             representative_data_gen,
+                                                             gptq_config=gptq_config,
+                                                             target_kpi=target_kpi,
+                                                             core_config=core_config,
+                                                             target_platform_capabilities=target_platform_cap)
     else:
         quantized_model, quantization_info = \
-            mct.keras_post_training_quantization_experimental(model,
-                                                              representative_data_gen,
-                                                              target_kpi=target_kpi,
-                                                              core_config=core_config,
-                                                              target_platform_capabilities=target_platform_cap)
+            post_training_quantization_experimental(model,
+                                                    representative_data_gen,
+                                                    target_kpi=target_kpi,
+                                                    core_config=core_config,
+                                                    target_platform_capabilities=target_platform_cap)
 
     #################################################
     # Run accuracy evaluation for the quantized model

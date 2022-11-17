@@ -10,6 +10,8 @@ def set_seed(seed: int):
     random.seed(seed)
     # PyTorch
     torch.manual_seed(seed)
-    torch.use_deterministic_algorithms(True)
+    #torch.backends.cudnn.deterministic = True
+    #torch.backends.cudnn.benchmark = False
+    #torch.use_deterministic_algorithms(True)
     # Tensorflow and Keras
     tf.keras.utils.set_random_seed(seed)

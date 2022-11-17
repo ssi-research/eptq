@@ -38,3 +38,17 @@ def keras_model_accuracy_evaluation_timm(model, dataset):
         count += np.sum(np.argmax(y_hat.squeeze(), axis=-1) == y)
         total += x.shape[0]
     return count / total
+
+
+def pytorch_model_accuracy_evaluation(model, dataset):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model.eval()
+    model.to(device)
+    total, count = 0, 0
+    with torch.no_grad():
+        for x, y in tqdm(dataset):
+            y_hat = model(x.to(device))
+            y_hat, y = y_hat.detach().cpu().numpy(), y.cpu().numpy()
+            count += np.sum(np.argmax(y_hat, axis=-1) == y)
+            total += x.shape[0]
+    return count / total
