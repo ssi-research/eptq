@@ -12,7 +12,7 @@ from torchvision.models.resnet import ResNet18_Weights, Optional, handle_legacy_
 
 class Add(nn.Module):
     def forward(self, x, y):
-        return x + y
+        return torch.relu(x + y)
 
 
 class BasicBlock(nn.Module):
@@ -61,7 +61,7 @@ class BasicBlock(nn.Module):
             identity = self.downsample(x)
 
         out = self.add(out, identity)
-        out = self.relu2(out)
+        # out = self.relu2(out)
 
         return out
 
@@ -105,23 +105,32 @@ class Net(nn.Module):
 
 
 def model_register_hook(in_net, list2append):
-    def get_activation(is_add):
+    def get_activation(in_name, is_add):
         def hook(model, input, output):
-            list2append.append((output, is_add))
+            list2append.update({in_name: (output, is_add)})
 
         return hook
 
-    for module in list(in_net.modules())[1:]:
+    for name, module in in_net.named_modules():
         if not isinstance(module, nn.Sequential) and (
                 isinstance(module, nn.BatchNorm2d) or isinstance(module, Add) or isinstance(module,
                                                                                             nn.Linear)):  # or isinstance(module, nn.ReLU)):
-            module.register_forward_hook(get_activation(isinstance(module, Add)))
+            module.register_forward_hook(get_activation(name, isinstance(module, Add)))
+
+
+def update_dict(agg_dict, in_dict):
+    if len(agg_dict) == 0:
+        return {k: [v] for k, v in in_dict.items()}
+    else:
+        for k, v in in_dict.items():
+            agg_dict[k].append(v)
+        return agg_dict
 
 
 def compute_hessian_trace(in_net, x, y, in_criterion, in_n_iter, in_device):
-    activations = []
+    activations = {}
     model_register_hook(in_net, activations)
-    res_image = []
+    res_image = {}
     x = x.to(in_device)
     y = y.to(in_device)
     for i in tqdm(range(x.shape[0])):
@@ -131,8 +140,8 @@ def compute_hessian_trace(in_net, x, y, in_criterion, in_n_iter, in_device):
         yi = y[i].unsqueeze(0)
         output = in_net(xi)
         loss = in_criterion(output, torch.nn.functional.one_hot(yi, 1000).float())
-        res_tensor = []
-        for j, (activation_tensor, is_add) in enumerate(activations):  # for each layer's output
+        res_tensor = {}
+        for name, (activation_tensor, is_add) in activations.items():  # for each layer's output
             grad = autograd.grad(outputs=loss,
                                  inputs=activation_tensor,
                                  retain_graph=True, create_graph=True)[0]
@@ -146,27 +155,25 @@ def compute_hessian_trace(in_net, x, y, in_criterion, in_n_iter, in_device):
                                    retain_graph=True)[0]
                 acc += torch.sum(v * hv.reshape([-1]))
             trace_res = acc / in_n_iter
-            res_tensor.append(trace_res.item())
-        res_image.append(res_tensor)
-    return np.asarray(res_image)
+            res_tensor.update({name: trace_res.item()})
+        # res_image.append(res_tensor)
+        res_image = update_dict(res_image, res_tensor)
+    return res_image
 
 
 def compute_jacobian_trace_approx(in_net, in_n_iter, in_input_tensors, in_device, updated=False):
-    activations = []
+    activations = {}
     model_register_hook(in_net, activations)
     # batch_jac_trace = []
-    batch_jac_norm = []
-    per_layer_image_approx = []
+    # batch_jac_norm = []
+    per_layer_image_approx = {}
     for i in tqdm(range(len(in_input_tensors))):  # for each image in batch
-        # print(f"Image {i} out of total {len(in_input_tensors)} in batch")
         activations.clear()
         x = in_input_tensors[i]
         output = in_net(x.to(in_device))
-        # layers_jac_trace = []
-        layers_jac_norm = []
-        per_layer_trace_approx = []
+        layers_jac_norm = {}
         add_or_conv = []
-        for j, (activation_tensor, is_add) in enumerate(activations):  # for each layer's output
+        for name, (activation_tensor, is_add) in activations.items():  # for each layer's output
             add_or_conv.append(is_add)
             jac_trace_approx = []
             for k in range(in_n_iter):  # iterations over random vectors
@@ -188,17 +195,19 @@ def compute_jacobian_trace_approx(in_net, in_n_iter, in_input_tensors, in_device
                     jac_trace = scale * torch.mean(torch.sum(jac_v * jac_u))
                 else:
                     jac_trace = torch.mean(torch.sum(torch.pow(jac_v, 2.0)))
-
+                c = activation_tensor.shape[1]
+                h = w = 1
+                if len(activation_tensor.shape) == 4:
+                    h = activation_tensor.shape[2]
+                    w = activation_tensor.shape[3]
                 jac_trace_approx.append(jac_trace.item())
-            per_layer_trace_approx.append(jac_trace_approx)
-            # layers_jac_trace.append(np.mean(jac_trace_approx))
-            layers_jac_norm.append(np.mean(jac_trace_approx))
-        per_layer_image_approx.append(per_layer_trace_approx)
-        # batch_jac_trace.append(layers_jac_trace)
-        batch_jac_norm.append(layers_jac_norm)
-        print(f"Current Jacobian approximation per layer is: \n {np.mean(batch_jac_norm, axis=0)}")
+            # per_layer_trace_approx.append(jac_trace_approx)
+            layers_jac_norm.update({name: np.mean(jac_trace_approx)})
+        per_layer_image_approx = update_dict(per_layer_image_approx, layers_jac_norm)
+        # batch_jac_norm.append(layers_jac_norm)
+        # print(f"Current Jacobian approximation per layer is: \n {np.mean(batch_jac_norm, axis=0)}")
 
-    return np.asarray(batch_jac_norm), np.asarray(per_layer_image_approx), add_or_conv
+    return per_layer_image_approx
 
 
 def get_default_preprocess():
@@ -227,7 +236,7 @@ def plot_jac_approx_per_layer(final_jac_approx):
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     n_iter = 50
-    batch_size = 16
+    batch_size = 2
     # net = models.mobilenet_v2(pretrained=True).to(device)
     net = resnet18(pretrained=True).to(device)
     # net = models.regnet_x_400mf(pretrained=True).to(device)
@@ -236,19 +245,26 @@ if __name__ == '__main__':
 
     x, y = next(iter(dl))
 
-    results = compute_hessian_trace(net, x, y, nn.MSELoss(), n_iter, device)
+    # results = compute_hessian_trace(net, x, y, nn.MSELoss(), n_iter, device)
     input_tensors = [x[i - 1:i, :, :, :] for i in range(1, x.shape[0] + 1)]
     for t in input_tensors:
         t.requires_grad_()
-    batch_jac_norm, jac_norm_approx_array, add_or_conv = compute_jacobian_trace_approx(in_net=net, in_n_iter=n_iter,
-                                                                                       in_input_tensors=input_tensors,
-                                                                                       in_device=device)
-    trace_mean = np.mean(batch_jac_norm, axis=0)
+    batch_jac_norm = compute_jacobian_trace_approx(in_net=net, in_n_iter=n_iter,
+                                                   in_input_tensors=input_tensors,
+                                                   in_device=device)
 
-    plt.semilogy(np.mean(results, axis=0), label="Hessian")
-    plt.semilogy([i for i, flag in enumerate(add_or_conv) if flag], np.mean(results, axis=0)[np.asarray(add_or_conv)],
-                 "o", label="Add")
-    plt.semilogy(2 * trace_mean / 1000, "--x", label="Label Free Approximation")
+    key_list = batch_jac_norm.keys()
+    print(key_list)
+    key_to_highlight = ["bn1", "layer1.0.add", "layer1.1.add", 'layer2.0.add', 'layer2.1.add', 'layer3.0.add',
+                        'layer3.1.add', 'layer4.0.add', 'layer4.1.add', 'fc']
+    # trace_mean = np.mean(batch_jac_norm, axis=0)
+    # [np.mean(results[key]) for key in key_list]
+    # plt.semilogy([np.mean(results[key]) for key in key_list], label="Hessian")
+    plt.semilogy([i for i, key in enumerate(key_list) if key in key_to_highlight],
+                 [2 * np.mean(batch_jac_norm[key]) / 1000 for key in key_list if key in key_to_highlight],
+                 "o", label="Block")
+
+    plt.semilogy([2 * np.mean(batch_jac_norm[key]) / 1000 for key in key_list], "--x", label="Label Free Approximation")
     plt.xlabel("Layer Index")
     plt.ylabel(r"$\mathbb{E}[\mathrm{Tr}(\mathbf{H})]$")
     plt.grid()

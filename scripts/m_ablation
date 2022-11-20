@@ -4,35 +4,20 @@ export GENERAL_COMMAND="--is_symmetric" #
 # shellcheck disable=SC2037
 export GPTQ_COMMAND=" --gptq --bias_learning --n_images 1024 --gptq_num_calibration_iter 80000 --maximal_temp 1.0 --minimal_temp 0.5 --temperature_learning --quantization_parameters_learning --jacobian_weights" #
 # shellcheck disable=SC2037
-export GROUP=baseline_extra
-export GROUP_MP=mpruns-dense-last
-export GROUP_MP_GPTQ=mpruns_gptq_mbv2_ab
-export GROUP_MP_TOTAL_GPTQ=mpruns_gptq_total
+export GROUP=new_res
+export GROUP_MP=mpruns-new_res-last
+export GROUP_MP_GPTQ=new_res_mp_gptq
+export GROUP_MP_TOTAL_GPTQ=new_res_mp_total
 
-#run_resnet18 () {
-#  # $1
-#  # $2
-#  #2 3 4 5
-#  for N in 1 2 3 4 5
-#  do
-#     nc run -C GPUALG python main.py  --model_name resnet18 --gamma_temperature $4 --lr $1 --weights_nbits 4 --group $GROUP-$1-$2-$3-$4-$5 $GENERAL_COMMAND $GPTQ_COMMAND --lr_bias $2 --lr_quantization_param $3 --gumbel_scale $5 --random_seed $N
-#  done
-#}
-#run_mbv2() {
-#  # $1
-#  # $2
-#  for N in 1 2 3 4 5
-#  do
-#     nc run -C GPUALG python main.py  --model_name mbv2 --gamma_temperature $4 --lr $1 --weights_nbits 4 --group $GROUP-$1-$2-$3-$4-$5 $GENERAL_COMMAND $GPTQ_COMMAND --lr_bias $2 --lr_quantization_param $3 --random_seed $N --gumbel_scale $5
-#  done
-#}
-#
+
 run_gptq_only() {
   # $1
   # $2
-  for N in 1 2 3 4 5
+  #  2 3 4 5
+
+  for N in 1
   do
-     nc run -C GPUALG python main.py  --model_name $1 --gamma_temperature $5 --lr $2 --weights_nbits $7 --group $GROUP-$1-$2-$3-$4-$5-$6-$7 $GENERAL_COMMAND $GPTQ_COMMAND --lr_bias $3 --lr_quantization_param $4 --random_seed $N --gumbel_scale $6
+     nc run -C GPUALG python main.py  --model_name $1 --gamma_temperature $5 --lr $2 --weights_nbits $7 --group $GROUP-$1-$2-$3-$4-$5-$6-$7-$8 $GENERAL_COMMAND $GPTQ_COMMAND --lr_bias $3 --lr_quantization_param $4 --random_seed $N --gumbel_scale $6 --m8 $8 --m4 $9
   done
 }
 
@@ -81,11 +66,40 @@ run_mp_total () {
 # Baseline config
 ########################################
 #run_gptq_only mbv2 0.05 1e-4 1e-3 0.0 0.85 4
-#run_gptq_only resnet18 0.1 1e-4 2e-3 0.05 0.5 4
-#run_gptq_only regnetx_006 0.05 1e-4 1e-3 0.1 0.5 2
+#run_gptq_only regnetx_006 0.05 1e-4 1e-3 0.1 0.5 4
+run_gptq_only resnet50 0.1 1e-4 1e-3 0.05 0.5 4 0 0
+run_gptq_only resnet50 0.1 1e-4 1e-3 0.05 0.6 4 0 0
+run_gptq_only resnet50 0.1 1e-4 1e-3 0.05 0.7 4 0 0
+run_gptq_only resnet50 0.1 1e-4 1e-3 0.05 0.8 4 0 0
+run_gptq_only resnet50 0.1 1e-4 1e-3 0.05 0.9 4 0 0
+#run_gptq_only resnet50 0.1 1e-4 1e-3 0.05 0.5 4 0 0
+#run_gptq_only resnet50 0.1 1e-4 1e-3 0.05 0.5 4 0 0
+#run_gptq_only resnet50 0.1 1e-4 1e-3 0.05 0.5 4 0 0
+# run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.5 4 0
 
-#run_resnet18 0.1 1e-4 1e-3 0.05 0.5
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.5 8 0 0
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.5 8 1 0
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.5 8 2 0
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.5 4 0 0
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.5 4 0 1
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.5 4 0 2
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.5 7 0
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.5 7 1
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.5 7 2
 
+
+
+
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.0 4 0
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.1 4 0
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.2 4 0
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.3 4 0
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.4 4 0
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.6 4 0
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.7 4 0 0
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.8 4 0 0
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 0.9 4 0 0
+#run_gptq_only resnet18 0.1 1e-4 1e-3 0.05 1.0 4 0 0
 ########################################
 # MP RegNet Total
 ########################################
@@ -103,14 +117,6 @@ run_mp_total () {
 #run_only_mp 9.8 resnet18
 #run_only_mp 11 resnet18
 #run_only_mp 12.5 resnet18
-########################################
-# MP ResNet + GPTQ
-########################################
-#run_mp resnet18 8 0.1 1e-4 2e-3 0.05 0.5 2
-#run_mp resnet18 8.8 0.1 1e-4 2e-3 0.05 0.5 2
-#run_mp resnet18 9.8 0.1 1e-4 2e-3 0.05 0.5 2
-#run_mp resnet18 11 0.1 1e-4 2e-3 0.05 0.5 2
-#run_mp resnet18 12.5 0.1 1e-4 2e-3 0.05 0.5 2
 ########################################
 # MP MBV2
 ########################################
@@ -135,14 +141,16 @@ run_mp_total () {
 ########################################
 # MP+GPTQ MBV2
 ########################################
-#run_mp mbv2 8 0.05 1e-4 1e-3 0.0 0.85 2
-# run_mp mbv2 8 0.1 1e-4 1e-3 0.0 0.85 2
-# run_mp mbv2 8 0.2 1e-4 1e-3 0.0 0.85 2
-#run_mp mbv2 8 0.05 1e-4 1e-3 0.0 1.0 3
-#run_mp mbv2 8 0.05 1e-4 1e-3 0.05 1.0 2
-#run_mp mbv2 8 0.05 1e-4 1e-3 0.0 0.7 2
-#run_mp mbv2 8 0.05 1e-4 1e-3 0.0 0.6 2
-#run_mp mbv2 8 0.05 1e-4 1e-3 0.0 0.5 2
+#run_mp mbv2 8 0.05 1e-4 1e-3 0.0 0.85  1
+#run_mp mbv2 8.8 0.05 1e-4 1e-3 0.0 0.85  1
+########################################
+# MP ResNet + GPTQ
+########################################
+#run_mp resnet18 8 0.1 1e-4 2e-3 0.05 0.5 1
+#run_mp resnet18 8.8 0.1 1e-4 2e-3 0.05 0.5 1
+#run_mp resnet18 9.8 0.1 1e-4 2e-3 0.05 0.5 1
+#run_mp resnet18 11 0.1 1e-4 2e-3 0.05 0.5 1
+#run_mp resnet18 12.5 0.1 1e-4 2e-3 0.05 0.5 1
 ########################################
 # MP RegNet
 ########################################

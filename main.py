@@ -133,7 +133,8 @@ def argument_handler():
                         help='Number of samples in distance matrix for distance computation')
     parser.add_argument('--use_grad_based_weights', action='store_true', default=False,
                         help='A flag to enable gradient-based weights for distance metric weighted average')
-
+    parser.add_argument('--dense2bit', action='store_true', default=False,
+                        help='Enable Mixed-Precision quantization')
     #####################################################################
     # Gumbel Rounding Config
     #####################################################################
@@ -155,14 +156,16 @@ def argument_handler():
     parser.add_argument('--lr_bias', type=float, default=1e-4, help='GPTQ learning rate')
     parser.add_argument('--lr_quantization_param', type=float, default=1e-3, help='GPTQ learning rate')
     parser.add_argument('--gumbel_scale', type=float, default=1.0, help='Gumbel randomization tensor factor')
+    parser.add_argument('--disable_activation_quantization_gptq', action='store_true', default=False,
+                        help='Enable GPTQ quantization')
 
     parser.add_argument('--m8', type=int, default=1)
     parser.add_argument('--m7', type=int, default=1)
     parser.add_argument('--m6', type=int, default=1)
-    parser.add_argument('--m5', type=int, default=1)
-    parser.add_argument('--m4', type=int, default=1)
-    parser.add_argument('--m3', type=int, default=1)
-    parser.add_argument('--m2', type=int, default=1)
+    parser.add_argument('--m5', type=int, default=0)
+    parser.add_argument('--m4', type=int, default=0)
+    parser.add_argument('--m3', type=int, default=0)
+    parser.add_argument('--m2', type=int, default=0)
 
     # Loss
     parser.add_argument('--hessian_weighting', action='store_true', default=False)

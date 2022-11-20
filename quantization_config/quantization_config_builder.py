@@ -5,6 +5,7 @@ from model_compression_toolkit.core.common.mixed_precision.mixed_precision_quant
 import numpy as np
 import model_compression_toolkit as mct
 from tensorflow.keras.layers import Input, Dense
+from model_compression_toolkit.core.common.mixed_precision.distance_weighting import get_last_layer_weights
 
 
 def compute_mse(float_tensor: np.ndarray, fxp_tensor: np.ndarray, norm: bool = True, norm_eps: float = 1e-8) -> float:
@@ -42,9 +43,10 @@ def core_config_builder(mixed_precision, num_calibration_iter, num_samples_for_d
         # TODO: set distance_fn and after changing default in library
         mp_config = MixedPrecisionQuantizationConfigV2(compute_distance_fn=None,
                                                        num_of_images=num_samples_for_distance,
-                                                       use_grad_based_weights=use_grad_based_weights,
+                                                       use_grad_based_weights=False,
+                                                       distance_weighting_method=get_last_layer_weights,
                                                        output_grad_factor=0.1,
-                                                       norm_weights=True,
+                                                       norm_weights=False,
                                                        configuration_overwrite=configuration_overwrite)
     core_config = CoreConfig(num_calibration_iter,
                              quantization_config=quant_config,
