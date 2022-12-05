@@ -49,7 +49,7 @@ def build_gptq_config(args):
     gc = mct.GumbelConfig(temperature_learning=args.temperature_learning, maximal_temp=args.maximal_temp,
                           minimal_temp=args.minimal_temp,
                           gumbel_entropy_regularization=args.gamma_temperature)
-    return mct.GradientPTQConfigV2(n_epochs=np.ceil(args.gptq_num_calibration_iter/args.num_calibration_iter),
+    return mct.GradientPTQConfigV2(n_epochs=int(np.ceil(args.gptq_num_calibration_iter/args.num_calibration_iter)),
                                    optimizer=optimizer,
                                    optimizer_rest=optimizer_rest,
                                    loss=GPTQMultipleTensorsLoss(norm_loss=args.norm_loss),
