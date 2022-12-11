@@ -2,7 +2,7 @@ import argparse
 import wandb
 import utils
 from constants import VAL_DIR, TRAIN_DIR
-
+# from utils import logging
 from models.model_dictionary import model_dictionary
 import model_compression_toolkit as mct
 import quantization_config
@@ -18,13 +18,11 @@ MPOVERRIDE_DICT_W = {"resnet18": {8: [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 
                                   11: [0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 2, 1],
                                   12.5: [0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 2, 2, 2, 1]},
                      "mbv2": {
-
                          8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1,
                              1, 0, 0, 2, 1, 1, 2, 0, 1, 1, 1, 0, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1],
 
                          8.8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1,
                                0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], },
-
                      "regnetx_006": {
                          8: [0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1],
@@ -44,7 +42,11 @@ MPOVERRIDE_DICT_W = {"resnet18": {8: [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 
 #     8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 3, 0, 0, 0, 3, 0, 1, 3, 0, 3, 0, 1, 0, 3, 0, 1, 3, 0, 3, 0, 1, 0, 6,
 #         0, 3]}}
 
-
+MPOVERRIDE_DICT_W_ALL = {"resnet18": {8: [0, 0, 2, 1, 2, 2, 1, 2, 2, 3, 3, 2, 4, 4, 4, 4, 3, 4, 4, 5, 3],
+                                      8.8: [0, 0, 2, 1, 2, 2, 0, 3, 3, 4, 4, 4, 4, 4, 5, 4, 3, 5, 4, 5, 4],
+                                      9.8: [0, 1, 3, 2, 3, 3, 1, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 4],
+                                      11: [0, 2, 3, 2, 4, 3, 1, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 5],
+                                      12.5: [2, 3, 5, 5, 5, 4, 2, 5, 5, 5, 5, 6, 5, 5, 6, 5, 5, 5, 6, 6, 5]}}
 MPOVERRIDE_DICT_T = {"regnetx_006": {
     6: [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 3, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 3, 0, 1,
@@ -67,6 +69,15 @@ MPOVERRIDE_DICT_T = {"regnetx_006": {
            2, 2, 2, 1, 2, 1, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1]
 
 }}
+
+RESNET50 = [0, 1, 4, 2, 18, 0, 4, 0, 25, 4, 5, 1, 5, 2, 39, 4, 4, 0, 4, 1, 39, 4, 4, 35, 0, 5, 0, 28, 1, 5, 0, 4, 0, 35,
+            1, 5, 1, 5, 0, 37, 1, 5, 0, 5, 2, 36, 0, 5, 46, 0, 5, 1, 36, 1, 5, 1, 5, 1, 45, 1, 5, 3, 6, 1, 45, 0, 5, 2,
+            6, 1, 45, 1, 6, 1, 6, 2, 42, 1, 6, 1, 6, 1, 43, 0, 5, 47, 1, 6, 0, 46, 0, 5, 2, 5, 0, 42, 0, 5, 0, 6, 0, 45,
+            1, 37]
+RESNET50_TOTAL = [0, 1, 5, 1, 26, 1, 4, 0, 33, 5, 5, 1, 4, 2, 40, 5, 4, 0, 4, 0, 40, 5, 4, 38, 2, 5, 2, 30, 2, 5, 0, 4,
+                  1, 37, 2, 5, 1, 5, 0, 37, 2, 5, 3, 5, 3, 38, 2, 5, 35, 2, 5, 1, 35, 1, 5, 1, 5, 0, 45, 0, 5, 1, 6, 1,
+                  42, 0, 5, 1, 6, 1, 43, 1, 5, 1, 6, 3, 42, 1, 5, 2, 6, 1, 42, 0, 5, 45, 1, 6, 1, 46, 1, 5, 1, 5, 0, 44,
+                  0, 5, 0, 6, 0, 42, 0, 41]
 
 
 def argument_handler():
@@ -134,6 +145,8 @@ def argument_handler():
     parser.add_argument('--use_grad_based_weights', action='store_true', default=False,
                         help='A flag to enable gradient-based weights for distance metric weighted average')
     parser.add_argument('--dense2bit', action='store_true', default=False,
+                        help='Enable Mixed-Precision quantization')
+    parser.add_argument('--six_bits', action='store_true', default=False,
                         help='Enable Mixed-Precision quantization')
     #####################################################################
     # Gumbel Rounding Config
@@ -214,9 +227,15 @@ def main():
         weights_mp = args.weights_cr is not None or args.total_cr is not None
         activation_mp = args.activation_cr is not None or args.total_cr is not None
         if weights_mp and activation_mp:
-            configuration_overwrite = MPOVERRIDE_DICT_T[args.model_name][args.total_cr]
+            if args.model_name == "tv_resnet50":
+                configuration_overwrite = RESNET50_TOTAL
+            else:
+                configuration_overwrite = MPOVERRIDE_DICT_T[args.model_name][args.total_cr]
         elif weights_mp:
-            configuration_overwrite = MPOVERRIDE_DICT_W[args.model_name][args.weights_cr]
+            if args.mp_all_bits:
+                configuration_overwrite = MPOVERRIDE_DICT_W_ALL[args.model_name][args.weights_cr]
+            else:
+                configuration_overwrite = MPOVERRIDE_DICT_W[args.model_name][args.weights_cr]
         else:
             raise NotImplemented
     core_config = quantization_config.core_config_builder(args.mixed_precision,
@@ -231,6 +250,7 @@ def main():
     # Get a TargetPlatformModel object that models the hardware for the quantized model inference.
     # The model determines the quantization methods to use during the MCT optimization process.
     mixed_precision_config = utils.MPCONFIG.MP_FULL_CANDIDATES if args.mp_all_bits else utils.MPCONFIG.MP_PARTIAL_CANDIDATES
+
     target_platform_cap, bit_width_mapping = quantization_config.build_target_platform_capabilities(
         args.mixed_precision,
         args.activation_nbits,
@@ -303,10 +323,11 @@ def main():
     wandb.config.update({"mixed_precision_cfg_final": quantization_info.mixed_precision_cfg,
                          "bit-width-mapping": bit_width_mapping})
     wandb.log({"quantized_results": quant_result * 100,
-               "float_results": float_result * 100,
-               **quantization_config.kpi2dict(target_kpi),
-               **quantization_config.kpi2dict(quantization_info.final_kpi, "final"),
-               **quantization_config.kpi2dict(full_kpi, "max_kp")})
+                 "float_results": float_result * 100,
+                 **quantization_config.kpi2dict(target_kpi),
+                 **quantization_config.kpi2dict(quantization_info.final_kpi, "final"),
+                 **quantization_config.kpi2dict(full_kpi, "max_kp")})
+
     print(f'Accuracy of quantized model: {quant_result * 100} (float model: {float_result * 100})')
 
 

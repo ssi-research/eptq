@@ -59,13 +59,13 @@ def get_mixed_precision_tp_model(mixed_precision_options,
                                                        activation_n_bits=activation_n_bits)
                          for weights_n_bits, activation_n_bits in mixed_precision_options]
 
-    mp_config_dense = [default_config.clone_and_edit(weights_n_bits=weights_n_bits,
-                                                     activation_n_bits=activation_n_bits)
-                       for weights_n_bits, activation_n_bits in mixed_precision_options if weights_n_bits > 2]
+    # mp_config_dense = [default_config.clone_and_edit(weights_n_bits=weights_n_bits,
+    #                                                  activation_n_bits=activation_n_bits)
+    #                    for weights_n_bits, activation_n_bits in mixed_precision_options if weights_n_bits > 2]
 
     return generate_mixed_precision_tp_model(default_config=default_config,
                                              mp_config_options=mp_config_options,
-                                             mp_config_dense=mp_config_dense,
+                                             mp_config_dense=mp_config_options,
                                              no_quant_config=no_quant_config)
 
 

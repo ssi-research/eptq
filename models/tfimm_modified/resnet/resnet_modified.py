@@ -721,3 +721,22 @@ def resnet50():
         crop_pct=0.95,
     )
     return generate_resnet_net_keras, cfg
+
+
+def tv_resnet50():
+    """Constructs a ResNet-50 model."""
+    # net_name = 'resnet50'
+    # cfg = ResNetConfig(
+    #     name=net_name,
+    #     url="[timm]" + net_name,
+    #     block="bottleneck",
+    #     nb_blocks=(3, 4, 6, 3),
+    #     interpolation="bicubic",
+    #     crop_pct=0.95,
+    # )
+    net_name = 'tv_resnet50'
+    cfg = ResNetConfig(
+        name=net_name, url="[timm]" + net_name, block="bottleneck", nb_blocks=(3, 4, 6, 3)
+    )
+    # return ResNet, cfg
+    return generate_resnet_net_keras, cfg
