@@ -239,7 +239,6 @@ def main():
         else:
             raise NotImplemented
     core_config = quantization_config.core_config_builder(args.mixed_precision,
-                                                          args.num_calibration_iter,
                                                           args.num_samples_for_distance,
                                                           args.use_grad_based_weights,
                                                           configuration_overwrite)
@@ -285,6 +284,7 @@ def main():
 
     representative_data_gen = model_cfg.get_representative_dataset(
         representative_dataset_folder=args.representative_dataset_folder,
+        n_iter=args.num_calibration_iter,
         batch_size=args.batch_size,
         n_images=args.n_images,
         image_size=args.image_size,
