@@ -51,9 +51,9 @@ def build_gptq_config(args):
         assert len(args.gumbel_scale_per_bitwidth) == 3, "To use different gumbel scale value per bit-width you " \
                                                          "should provide a list with 3 values under argument " \
                                                          "gumbel_scale_per_bitwidth - for 2, 4 and 8 bit (in this order)."
-        gumbel_scale_per_bitwidth[2] = args.gumbel_scale_per_bitwidth[0]
-        gumbel_scale_per_bitwidth[4] = args.gumbel_scale_per_bitwidth[1]
-        gumbel_scale_per_bitwidth[8] = args.gumbel_scale_per_bitwidth[2]
+        gumbel_scale_per_bitwidth[2] = float(args.gumbel_scale_per_bitwidth[0])
+        gumbel_scale_per_bitwidth[4] = float(args.gumbel_scale_per_bitwidth[1])
+        gumbel_scale_per_bitwidth[8] = float(args.gumbel_scale_per_bitwidth[2])
 
     gc = mct.GumbelConfig(temperature_learning=args.temperature_learning,
                           maximal_temp=args.maximal_temp,
