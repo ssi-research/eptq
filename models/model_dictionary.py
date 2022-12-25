@@ -2,6 +2,7 @@ from keras.applications.mobilenet_v2 import MobileNetV2
 from models.model_config import ModelParameters
 from datasets.image_utils import keras_model_accuracy_evaluation_timm
 from models.regnet import regnetx_006, regnetx_032
+from models.tfimm_modified.mlp_mixer.mlp_mixer_modified import mixer_b16_224
 from models.tfimm_modified.efficentnet.efficnet_modified import mobilenet_v2_100_m
 from models.tfimm_modified.resnet.resnet_modified import resnet18, resnet50
 
@@ -48,5 +49,14 @@ model_dictionary = {
         is_tfimm=True,
         evaluation_function=keras_model_accuracy_evaluation_timm,
         interpolation="bicubic"
-    )
+    ),
+    'mlp_mixer': ModelParameters(
+        model=mixer_b16_224,
+        float_accuracy=76.61,
+        model_params={'weights': 'imagenet'},
+        is_tfimm=True,
+        evaluation_function=keras_model_accuracy_evaluation_timm,
+        name="mixer_b16_224",
+        interpolation="bicubic"
+    ),
 }
