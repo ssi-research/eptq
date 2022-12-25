@@ -1,10 +1,8 @@
-from typing import List
 import tensorflow as tf
 import model_compression_toolkit as mct
 from model_compression_toolkit import RoundingType
 from utils.radam_optimizer import RAdam
 from quantization_config.gptq_loss import GPTQMultipleTensorsLoss
-import numpy as np
 import wandb
 
 
@@ -46,10 +44,25 @@ def build_gptq_config(args):
         optimizer_quantization_param = tf.keras.optimizers.SGD(learning_rate=args.lr_quantization_param, momentum=0.9)
     else:
         optimizer_quantization_param = None
-    gc = mct.GumbelConfig(temperature_learning=args.temperature_learning, maximal_temp=args.maximal_temp,
+
+    gumbel_scale_per_bitwidth = None
+    if args.gumbel_scale_per_bitwidth is not None:
+        gumbel_scale_per_bitwidth = {}
+        assert len(args.gumbel_scale_per_bitwidth) == 3, "To use different gumbel scale value per bit-width you " \
+                                                         "should provide a list with 3 values under argument " \
+                                                         "gumbel_scale_per_bitwidth - for 2, 4 and 8 bit (in this order)."
+        gumbel_scale_per_bitwidth[2] = args.gumbel_scale_per_bitwidth[0]
+        gumbel_scale_per_bitwidth[4] = args.gumbel_scale_per_bitwidth[1]
+        gumbel_scale_per_bitwidth[8] = args.gumbel_scale_per_bitwidth[2]
+
+    gc = mct.GumbelConfig(temperature_learning=args.temperature_learning,
+                          maximal_temp=args.maximal_temp,
                           minimal_temp=args.minimal_temp,
-                          gumbel_entropy_regularization=args.gamma_temperature)
-    return mct.GradientPTQConfigV2(n_epochs=int(np.ceil(args.gptq_num_calibration_iter/args.num_calibration_iter)),
+                          gumbel_entropy_regularization=args.gamma_temperature,
+                          gumbel_scale=args.gumbel_scale,
+                          gumbel_scale_per_bitwidth=gumbel_scale_per_bitwidth)
+
+    return mct.GradientPTQConfigV2(n_epochs=args.gptq_num_calibration_iter,
                                    optimizer=optimizer,
                                    optimizer_rest=optimizer_rest,
                                    loss=GPTQMultipleTensorsLoss(norm_loss=args.norm_loss),
@@ -66,4 +79,6 @@ def build_gptq_config(args):
                                    optimizer_bias=optimizer_bias,
                                    optimizer_quantization_parameter=optimizer_quantization_param,
                                    quantizer_config=gc,
-                                   gumbel_scale=args.gumbel_scale)
+                                   log_norm=args.gptq_log_norm,
+                                   weights_n_iter=args.jacobian_weights_num_iter,
+                                   )

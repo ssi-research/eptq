@@ -2,7 +2,7 @@ import argparse
 import wandb
 import utils
 from constants import VAL_DIR, TRAIN_DIR
-# from utils import logging
+
 from models.model_dictionary import model_dictionary
 import model_compression_toolkit as mct
 import quantization_config
@@ -169,12 +169,15 @@ def argument_handler():
     parser.add_argument('--lr_bias', type=float, default=1e-4, help='GPTQ learning rate')
     parser.add_argument('--lr_quantization_param', type=float, default=1e-3, help='GPTQ learning rate')
     parser.add_argument('--gumbel_scale', type=float, default=1.0, help='Gumbel randomization tensor factor')
+    parser.add_argument('--gumbel_scale_per_bitwidth', nargs="+", default=None,
+                        help='List of gumbel scale values per bit-width. If supplied, should contain exactly 3 values,'
+                             'for 2, 4 and 8 bit (in this order).')
     parser.add_argument('--disable_activation_quantization_gptq', action='store_true', default=False,
                         help='Enable GPTQ quantization')
 
-    parser.add_argument('--m8', type=int, default=1)
-    parser.add_argument('--m7', type=int, default=1)
-    parser.add_argument('--m6', type=int, default=1)
+    parser.add_argument('--m8', type=int, default=0)
+    parser.add_argument('--m7', type=int, default=0)
+    parser.add_argument('--m6', type=int, default=0)
     parser.add_argument('--m5', type=int, default=0)
     parser.add_argument('--m4', type=int, default=0)
     parser.add_argument('--m3', type=int, default=0)
@@ -187,7 +190,9 @@ def argument_handler():
     parser.add_argument('--norm_loss', action='store_true', default=False)
     parser.add_argument('--jacobian_weights', action='store_true', default=False)
     parser.add_argument('--jacobian_weights_num_samples', type=int, default=16)
+    parser.add_argument('--jacobian_weights_num_iter', type=int, default=50)
     parser.add_argument('--norm_weights', action='store_true', default=False)
+    parser.add_argument('--gptq_log_norm', action='store_true', default=False)
 
     args = parser.parse_args()
     return args
