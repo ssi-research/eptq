@@ -28,7 +28,7 @@ def compute_mse(float_tensor: np.ndarray, fxp_tensor: np.ndarray, norm: bool = T
 
 
 def core_config_builder(mixed_precision, num_samples_for_distance, use_grad_based_weights,
-                        configuration_overwrite, last_layer=False, mp_norm_weights=False, old_metric=True):
+                        configuration_overwrite):
     # TODO: Need to edit the config or is default config is enough?
     quant_config = QuantizationConfig()
     mp_config = None
@@ -41,26 +41,13 @@ def core_config_builder(mixed_precision, num_samples_for_distance, use_grad_base
                                                         enable_activation_quantization=False))])
     if mixed_precision:
         # TODO: set distance_fn and after changing default in library
-        if last_layer:
-            mp_config = MixedPrecisionQuantizationConfigV2(compute_distance_fn=None,
-                                                           num_of_images=num_samples_for_distance,
-                                                           use_grad_based_weights=False,
-                                                           distance_weighting_method=get_last_layer_weights,
-                                                           output_grad_factor=0.1,
-                                                           norm_weights=False,
-                                                           configuration_overwrite=configuration_overwrite)
-        elif old_metric:
-            mp_config = MixedPrecisionQuantizationConfigV2(compute_distance_fn=None,
-                                                           num_of_images=num_samples_for_distance,
-                                                           use_grad_based_weights=use_grad_based_weights,
-                                                           output_grad_factor=0.1,
-                                                           norm_weights=mp_norm_weights,
-                                                           configuration_overwrite=configuration_overwrite)
-
-        else:
-            # new log norm
-            raise NotImplementedError()
-
+        mp_config = MixedPrecisionQuantizationConfigV2(compute_distance_fn=None,
+                                                       num_of_images=num_samples_for_distance,
+                                                       use_grad_based_weights=False,
+                                                       distance_weighting_method=get_last_layer_weights,
+                                                       output_grad_factor=0.1,
+                                                       norm_weights=False,
+                                                       configuration_overwrite=configuration_overwrite)
     core_config = CoreConfig(quant_config,
                              mixed_precision_config=mp_config,
                              debug_config=debug_config)
