@@ -3,6 +3,7 @@ import model_compression_toolkit as mct
 from model_compression_toolkit import RoundingType
 from utils.radam_optimizer import RAdam
 from quantization_config.gptq_loss import GPTQMultipleTensorsLoss
+import numpy as np
 import wandb
 
 
@@ -62,7 +63,7 @@ def build_gptq_config(args):
                           gumbel_scale=args.gumbel_scale,
                           gumbel_scale_per_bitwidth=gumbel_scale_per_bitwidth)
 
-    return mct.GradientPTQConfigV2(n_epochs=args.gptq_num_calibration_iter,
+    return mct.GradientPTQConfigV2(n_epochs=int(np.ceil(args.gptq_num_calibration_iter/args.num_calibration_iter)),
                                    optimizer=optimizer,
                                    optimizer_rest=optimizer_rest,
                                    loss=GPTQMultipleTensorsLoss(norm_loss=args.norm_loss),
