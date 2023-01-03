@@ -61,7 +61,7 @@ model_dictionary = {
     ),
     'mlp_mixer': ModelParameters(
         model=mixer_b16_224,
-        float_accuracy=76.61,
+        float_accuracy=0.727,
         model_params={'weights': 'imagenet'},
         is_tfimm=True,
         evaluation_function=keras_model_accuracy_evaluation_timm,
