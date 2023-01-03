@@ -91,15 +91,11 @@ class PatchEmbeddings(object):
         x = self.projection(x)
 
         # batch_size, height, width = tf.unstack(tf.shape(x)[:3])
-        batch_size = tf.shape(x)[0]
-        height = tf.shape(x)[1]
-        width = tf.shape(x)[2]
-        rest = tf.shape(x)[3]
 
         if self.flatten:
             # Change the 2D spatial dimensions to a single temporal dimension.
             # x = tf.reshape(tensor=x, shape=(batch_size, height * width, -1))
-            x = tf.reshape(tensor=x, shape=(batch_size, height * width, rest))
+            x = tf.keras.layers.Reshape(target_shape=(-1, self.embed_dim))(x)
 
         x = self.norm(x)
         return x
