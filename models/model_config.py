@@ -169,7 +169,7 @@ class ModelParameters(object):
                  interpolation="bilinear",
                  image_size=(224, 224, 3),
                  name=None,
-
+                 allow_missing_keys=False
                  ):
         self.name = name
         self.model = model
@@ -181,6 +181,7 @@ class ModelParameters(object):
         self.interpolation = interpolation
         self.image_size = image_size
         self.resize_to = [self.image_size[0], self.image_size[1]]
+        self.allow_missing_keys = allow_missing_keys
 
     def get_float_accuracy(self):
         return self.float_accuracy
@@ -195,7 +196,7 @@ class ModelParameters(object):
             # if self.name == "resnet18":
             #     state_dict_temp = torch.load("/data/projects/swat/users/haih/gumbel-rounding/models/resnet18.pth")
             #     pt_state_dict = {target: state_dict_temp[source] for target, source in resnet18dict.items()}
-            load_pytorch_weights_in_tf2_model(model, pt_state_dict)
+            load_pytorch_weights_in_tf2_model(model, pt_state_dict, allow_missing_keys=self.allow_missing_keys)
 
             return model
         if isinstance(self.model, str):
