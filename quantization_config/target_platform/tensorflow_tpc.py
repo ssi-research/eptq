@@ -5,6 +5,7 @@ from keras.layers import Conv2D, DepthwiseConv2D, Dense, Reshape, ZeroPadding2D,
 from keras.engine.input_layer import InputLayer
 
 import model_compression_toolkit as mct
+from model_compression_toolkit.core.common.target_platform.targetplatform2framework.attribute_filter import Contains
 
 tp = mct.target_platform
 
@@ -35,7 +36,9 @@ def generate_keras_tpc(tp_model: tp.TargetPlatformModel, name: str):
                                                     tf.math.argmax,
                                                     tf.shape,
                                                     tf.__operators__.getitem,
-                                                    tf.compat.v1.shape])
+                                                    tf.compat.v1.shape,
+                                                    tp.LayerFilterParams(Dense, Contains("name", "token") |
+                                                                         Contains("name", "pos_embed"))])
 
         tp.OperationsSetToLayers("Conv", [Conv2D,
                                           DepthwiseConv2D,
