@@ -32,7 +32,7 @@ def build_shift_dict(args):
     return shift_dict
 
 
-def build_gptq_config(args):
+def build_gptq_config(args, n_iter):
     rounding_type = RoundingType.STE if args.ste_rounding else RoundingType.GumbelRounding
     optimizer = RAdam(learning_rate=args.lr)
     optimizer_rest = RAdam(learning_rate=args.lr_rest)
@@ -63,7 +63,7 @@ def build_gptq_config(args):
                           gumbel_scale=args.gumbel_scale,
                           gumbel_scale_per_bitwidth=gumbel_scale_per_bitwidth)
 
-    return mct.GradientPTQConfigV2(n_epochs=int(np.ceil(args.gptq_num_calibration_iter/args.num_calibration_iter)),
+    return mct.GradientPTQConfigV2(n_epochs=int(np.ceil(args.gptq_num_calibration_iter/n_iter)),
                                    optimizer=optimizer,
                                    optimizer_rest=optimizer_rest,
                                    loss=GPTQMultipleTensorsLoss(norm_loss=args.norm_loss),

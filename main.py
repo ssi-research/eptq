@@ -1,3 +1,5 @@
+import math
+import sys
 import argparse
 import wandb
 import utils
@@ -287,9 +289,10 @@ def main():
         augmentation_pipeline = generate_augmentation_function(tuple(args.aug_mean), tuple(args.aug_std),
                                                                args.aug_alpha, args.aug_p, args.aug_dequantization)
 
+    n_iter = math.ceil(args.n_images / args.batch_size)
     representative_data_gen = model_cfg.get_representative_dataset(
         representative_dataset_folder=args.representative_dataset_folder,
-        n_iter=args.num_calibration_iter,
+        n_iter=n_iter,
         batch_size=args.batch_size,
         n_images=args.n_images,
         image_size=args.image_size,
@@ -304,7 +307,7 @@ def main():
                                                                 target_platform_cap)
 
     if args.gptq:
-        gptq_config = quantization_config.build_gptq_config(args)
+        gptq_config = quantization_config.build_gptq_config(args, n_iter)
 
         quantized_model, quantization_info = \
             mct.keras_gradient_post_training_quantization_experimental(model,
@@ -337,4 +340,5 @@ def main():
 
 
 if __name__ == '__main__':
+    sys.setrecursionlimit(10000)
     main()
