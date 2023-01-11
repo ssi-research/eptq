@@ -5,7 +5,7 @@ from models.regnet import regnetx_006, regnetx_032
 from models.tfimm_modified.mlp_mixer.mlp_mixer_modified import mixer_b16_224
 from models.tfimm_modified.efficentnet.efficnet_modified import mobilenet_v2_100_m
 from models.tfimm_modified.resnet.resnet_modified import resnet18, resnet50, tv_resnet50
-import tfimm
+from models.tfimm_modified.vit.vit_modified import deit_base_distilled_patch16_224
 
 model_dictionary = {
     'mobilenet_v2': ModelParameters(
@@ -67,5 +67,15 @@ model_dictionary = {
         evaluation_function=keras_model_accuracy_evaluation_timm,
         name="mixer_b16_224",
         interpolation="bicubic"
+    ),
+    'deit': ModelParameters(
+        model=deit_base_distilled_patch16_224,
+        float_accuracy=83.336,
+        model_params={'weights': 'imagenet'},
+        is_tfimm=True,
+        evaluation_function=keras_model_accuracy_evaluation_timm,
+        name="deit_base_distilled_patch16_224",
+        interpolation="bicubic",
+        allow_missing_keys=True,
     ),
 }

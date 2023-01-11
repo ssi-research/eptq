@@ -104,6 +104,8 @@ def load_pytorch_weights_in_tf2_model(
             new_key = key.replace(".beta", ".bias")
         elif key.endswith(".gamma"):
             new_key = key.replace(".gamma", ".weight")
+        elif key in ['cls_token', 'dist_token', 'pos_embed']:
+            new_key = key + ".bias"
         if new_key:
             old_keys.append(key)
             new_keys.append(new_key)
