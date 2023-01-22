@@ -14,6 +14,18 @@ PROJECT_NAME = 'gumbel-rounding'
 FILE_TIME_STAMP = datetime.now().strftime("%d-%b-%Y__%H:%M:%S")
 
 
+# TODO:
+#  1) Update project name
+#  2) Handle (or remove?) wandb logging
+#  3) Finalize and verify TPC
+#  4) Clean "model_config"
+#  5) Remove scripts, analysis (?), and logged results
+#  6) Remove unnecessary and commented-out code from modified models
+#  7) Update methods comment and typehints
+#  8) Add option for scaled_hessian_weights?
+#  9) Align with MCT (after inserting soft quantizer and other changes to MCT)
+
+
 def argument_handler():
     parser = argparse.ArgumentParser()
     #####################################################################
@@ -39,7 +51,6 @@ def argument_handler():
     #####################################################################
     # MCT Config
     #####################################################################
-    parser.add_argument('--num_calibration_iter', type=int, default=10)
     parser.add_argument('--weights_nbits', type=int, default=4,
                         help='The number of bits for weights quantization')
     parser.add_argument('--activation_nbits', type=int, default=8,
@@ -54,8 +65,8 @@ def argument_handler():
     #####################################################################
     parser.add_argument('--mixed_precision', action='store_true', default=False,
                         help='Enable Mixed-Precision quantization')
-    parser.add_argument('--mixed_precision_override', action='store_true', default=False,
-                        help='Enable Mixed-Precision quantization')
+    parser.add_argument("--mixed_precision_configuration", nargs="+", default=None,
+                        help='Mixed-precision configuration to set to the model instead of searching')
     parser.add_argument('--mp_all_bits', action='store_true', default=False,
                         help='Enable Mixed-Precision quantization')
     parser.add_argument('--weights_cr', type=float,
@@ -66,8 +77,6 @@ def argument_handler():
                         help='Total compression rate for mixed-precision')
     parser.add_argument('--num_samples_for_distance', type=int, default=32,
                         help='Number of samples in distance matrix for distance computation')
-    parser.add_argument('--dense2bit', action='store_true', default=False,
-                        help='Enable 2-bit candidate for Dense layers in mixed precision')
 
     #####################################################################
     # Gumbel Rounding Config
@@ -76,8 +85,6 @@ def argument_handler():
     parser.add_argument('--gptq_num_calibration_iter', type=int, default=40000)
     parser.add_argument('--temperature_learning', action='store_true', default=False)
     parser.add_argument('--bias_learning', action='store_true', default=False)
-    parser.add_argument('--is_symmetric', action='store_true', default=False)
-    parser.add_argument('--is_symmetric_activation', action='store_true', default=False)
     parser.add_argument('--quantization_parameters_learning', action='store_true', default=False)
     parser.add_argument('--gamma_temperature', type=float, default=0.0)
     parser.add_argument('--lr', type=float, default=0.15, help='GPTQ learning rate')
@@ -128,15 +135,13 @@ def main():
     #################################################
     # Build quantization configuration
     #################################################
-    configuration_overwrite = None
-    if args.mixed_precision_override:
-        weights_mp = args.weights_cr is not None or args.total_cr is not None
-        activation_mp = args.activation_cr is not None or args.total_cr is not None
-        # TODO: implement MP config override without taking from dict
+    configuration_override = None
+    if args.args.mixed_precision_configuration_override is not None:
+        configuration_override = [int(b) for b in args.mixed_precision_configuration]
 
     core_config = quantization_config.core_config_builder(args.mixed_precision,
                                                           args.num_samples_for_distance,
-                                                          configuration_overwrite)
+                                                          configuration_override)
 
     #################################################
     # Run the Model Compression Toolkit
@@ -153,9 +158,7 @@ def main():
         args.disable_activation_quantization,
         args.weights_cr, args.activation_cr,
         args.total_cr,
-        mixed_precision_config=mixed_precision_config,
-        is_symmetric=args.is_symmetric,
-        is_symmetric_act=args.is_symmetric_activation)
+        mixed_precision_config=mixed_precision_config)
 
     #################################################
     # Generate Model

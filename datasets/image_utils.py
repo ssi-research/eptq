@@ -16,8 +16,6 @@ def get_default_keras_model_preprocess():
 def get_default_keras_data_preprocess(image_size):
     return [tf.keras.layers.Resizing(image_size, image_size),
             partial(keras.applications.imagenet_utils.preprocess_input, mode='tf')]
-    # return [partial(keras.preprocessing.image.smart_resize, size=(image_size, image_size)),
-    #         partial(keras.applications.imagenet_utils.preprocess_input, mode='tf')]
 
 
 def keras_model_accuracy_evaluation(model, dataset):
