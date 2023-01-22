@@ -27,9 +27,7 @@ def compute_mse(float_tensor: np.ndarray, fxp_tensor: np.ndarray, norm: bool = T
     return error
 
 
-def core_config_builder(mixed_precision, num_samples_for_distance, use_grad_based_weights,
-                        configuration_overwrite):
-    # TODO: Need to edit the config or is default config is enough?
+def core_config_builder(mixed_precision, num_samples_for_distance, configuration_overwrite):
     quant_config = QuantizationConfig()
     mp_config = None
     debug_config = model_compression_toolkit.DebugConfig(
@@ -40,13 +38,10 @@ def core_config_builder(mixed_precision, num_samples_for_distance, use_grad_base
                                                     action=mct.network_editor.ChangeCandidatesActivationQuantConfigAttr(
                                                         enable_activation_quantization=False))])
     if mixed_precision:
-        # TODO: set distance_fn and after changing default in library
         mp_config = MixedPrecisionQuantizationConfigV2(compute_distance_fn=None,
                                                        num_of_images=num_samples_for_distance,
                                                        use_grad_based_weights=False,
                                                        distance_weighting_method=get_last_layer_weights,
-                                                       output_grad_factor=0.1,
-                                                       norm_weights=False,
                                                        configuration_overwrite=configuration_overwrite)
     core_config = CoreConfig(quant_config,
                              mixed_precision_config=mp_config,

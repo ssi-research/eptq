@@ -238,8 +238,7 @@ class ModelParameters(object):
                 yield img
 
     def get_representative_dataset_from_classes_and_images(self, in_dir, n_iter, num_images,
-                                                           preprocessing, image_size=224, batch_size=1,
-                                                           augmentation_pipepline: Callable = None):
+                                                           preprocessing, image_size=224, batch_size=1):
         """
             Images returned belong to a set of image_numbers from each class in class numbers.
         class_numbers: The directory of the dataset.
@@ -291,8 +290,6 @@ class ModelParameters(object):
                         except StopIteration:
                             self.iter = iter(self.dl)
                             x = next(self.iter)[0]
-                        if augmentation_pipepline is not None:
-                            x = augmentation_pipepline(x)
                         yield [torch.permute(x, [0, 2, 3, 1]).cpu().numpy()]
 
             return RepresentativeDataset(dl)
@@ -300,8 +297,7 @@ class ModelParameters(object):
         return representative_dataset
 
     def get_representative_dataset(self, representative_dataset_folder, n_iter, batch_size, n_images, image_size,
-                                   preprocessing=None, seed=0, debug: bool = False,
-                                   augmentation_pipepline: Callable = None):
+                                   preprocessing=None, seed=0, debug: bool = False):
         if debug:
             x = np.random.randn(batch_size, image_size, image_size, 3)
 
@@ -318,5 +314,4 @@ class ModelParameters(object):
             n_iter=n_iter,
             num_images=n_images,
             preprocessing=preprocessing,
-            batch_size=batch_size,
-            augmentation_pipepline=augmentation_pipepline)
+            batch_size=batch_size)
