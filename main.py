@@ -10,20 +10,17 @@ import model_compression_toolkit as mct
 import quantization_config
 from datetime import datetime
 
-PROJECT_NAME = 'gumbel-rounding'
+PROJECT_NAME = 'eptq'
 FILE_TIME_STAMP = datetime.now().strftime("%d-%b-%Y__%H:%M:%S")
 
 
 # TODO:
-#  1) Update project name
-#  2) Handle (or remove?) wandb logging
-#  3) Finalize and verify TPC
-#  4) Clean "model_config"
-#  5) Remove scripts, analysis (?), and logged results
-#  6) Remove unnecessary and commented-out code from modified models
-#  7) Update methods comment and typehints
-#  8) Add option for scaled_hessian_weights?
-#  9) Align with MCT (after inserting soft quantizer and other changes to MCT)
+#  1) Handle (or remove?) wandb logging
+#  2) Remove/update analysis code and save result
+#  3) Fix dataset path
+#  4) Update methods comment and typehints
+#  5) Add option for scaled_hessian_weights?
+#  6) Align with MCT (after inserting soft quantizer and other changes to MCT)
 
 
 def argument_handler():
@@ -136,7 +133,7 @@ def main():
     # Build quantization configuration
     #################################################
     configuration_override = None
-    if args.args.mixed_precision_configuration_override is not None:
+    if args.mixed_precision_configuration is not None:
         configuration_override = [int(b) for b in args.mixed_precision_configuration]
 
     core_config = quantization_config.core_config_builder(args.mixed_precision,

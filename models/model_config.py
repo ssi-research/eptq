@@ -1,5 +1,3 @@
-from collections import Callable
-
 import tensorflow as tf
 import timm
 import torch
@@ -11,152 +9,6 @@ from models.tfimm_modified.load_weight_updated import load_pytorch_weights_in_tf
 
 from torch.utils.data import Subset
 
-resnet18dict = {'conv1.weight': 'features.init_block.conv.conv.weight',
-                'bn1.weight': 'features.init_block.conv.bn.weight',
-                'bn1.bias': 'features.init_block.conv.bn.bias',
-                'bn1.running_mean': 'features.init_block.conv.bn.running_mean',
-                'bn1.running_var': 'features.init_block.conv.bn.running_var',
-                'bn1.num_batches_tracked': 'features.init_block.conv.bn.num_batches_tracked',
-                'layer1.0.conv1.weight': 'features.stage1.unit1.body.conv1.conv.weight',
-                'layer1.0.bn1.weight': 'features.stage1.unit1.body.conv1.bn.weight',
-                'layer1.0.bn1.bias': 'features.stage1.unit1.body.conv1.bn.bias',
-                'layer1.0.bn1.running_mean': 'features.stage1.unit1.body.conv1.bn.running_mean',
-                'layer1.0.bn1.running_var': 'features.stage1.unit1.body.conv1.bn.running_var',
-                'layer1.0.bn1.num_batches_tracked': 'features.stage1.unit1.body.conv1.bn.num_batches_tracked',
-                'layer1.0.conv2.weight': 'features.stage1.unit1.body.conv2.conv.weight',
-                'layer1.0.bn2.weight': 'features.stage1.unit1.body.conv2.bn.weight',
-                'layer1.0.bn2.bias': 'features.stage1.unit1.body.conv2.bn.bias',
-                'layer1.0.bn2.running_mean': 'features.stage1.unit1.body.conv2.bn.running_mean',
-                'layer1.0.bn2.running_var': 'features.stage1.unit1.body.conv2.bn.running_var',
-                'layer1.0.bn2.num_batches_tracked': 'features.stage1.unit1.body.conv2.bn.num_batches_tracked',
-                'layer1.1.conv1.weight': 'features.stage1.unit2.body.conv1.conv.weight',
-                'layer1.1.bn1.weight': 'features.stage1.unit2.body.conv1.bn.weight',
-                'layer1.1.bn1.bias': 'features.stage1.unit2.body.conv1.bn.bias',
-                'layer1.1.bn1.running_mean': 'features.stage1.unit2.body.conv1.bn.running_mean',
-                'layer1.1.bn1.running_var': 'features.stage1.unit2.body.conv1.bn.running_var',
-                'layer1.1.bn1.num_batches_tracked': 'features.stage1.unit2.body.conv1.bn.num_batches_tracked',
-                'layer1.1.conv2.weight': 'features.stage1.unit2.body.conv2.conv.weight',
-                'layer1.1.bn2.weight': 'features.stage1.unit2.body.conv2.bn.weight',
-                'layer1.1.bn2.bias': 'features.stage1.unit2.body.conv2.bn.bias',
-                'layer1.1.bn2.running_mean': 'features.stage1.unit2.body.conv2.bn.running_mean',
-                'layer1.1.bn2.running_var': 'features.stage1.unit2.body.conv2.bn.running_var',
-                'layer1.1.bn2.num_batches_tracked': 'features.stage1.unit2.body.conv2.bn.num_batches_tracked',
-                'layer2.0.conv1.weight': 'features.stage2.unit1.body.conv1.conv.weight',
-                'layer2.0.bn1.weight': 'features.stage2.unit1.body.conv1.bn.weight',
-                'layer2.0.bn1.bias': 'features.stage2.unit1.body.conv1.bn.bias',
-                'layer2.0.bn1.running_mean': 'features.stage2.unit1.body.conv1.bn.running_mean',
-                'layer2.0.bn1.running_var': 'features.stage2.unit1.body.conv1.bn.running_var',
-                'layer2.0.bn1.num_batches_tracked': 'features.stage2.unit1.body.conv1.bn.num_batches_tracked',
-                'layer2.0.conv2.weight': 'features.stage2.unit1.body.conv2.conv.weight',
-                'layer2.0.bn2.weight': 'features.stage2.unit1.body.conv2.bn.weight',
-                'layer2.0.bn2.bias': 'features.stage2.unit1.body.conv2.bn.bias',
-                'layer2.0.bn2.running_mean': 'features.stage2.unit1.body.conv2.bn.running_mean',
-                'layer2.0.bn2.running_var': 'features.stage2.unit1.body.conv2.bn.running_var',
-                'layer2.0.bn2.num_batches_tracked': 'features.stage2.unit1.body.conv2.bn.num_batches_tracked',
-                'layer2.0.downsample.0.weight': 'features.stage2.unit1.identity_conv.conv.weight',
-                'layer2.0.downsample.1.weight': 'features.stage2.unit1.identity_conv.bn.weight',
-                'layer2.0.downsample.1.bias': 'features.stage2.unit1.identity_conv.bn.bias',
-                'layer2.0.downsample.1.running_mean': 'features.stage2.unit1.identity_conv.bn.running_mean',
-                'layer2.0.downsample.1.running_var': 'features.stage2.unit1.identity_conv.bn.running_var',
-                'layer2.0.downsample.1.num_batches_tracked': 'features.stage2.unit1.identity_conv.bn.num_batches_tracked',
-                'layer2.1.conv1.weight': 'features.stage2.unit2.body.conv1.conv.weight',
-                'layer2.1.bn1.weight': 'features.stage2.unit2.body.conv1.bn.weight',
-                'layer2.1.bn1.bias': 'features.stage2.unit2.body.conv1.bn.bias',
-                'layer2.1.bn1.running_mean': 'features.stage2.unit2.body.conv1.bn.running_mean',
-                'layer2.1.bn1.running_var': 'features.stage2.unit2.body.conv1.bn.running_var',
-                'layer2.1.bn1.num_batches_tracked': 'features.stage2.unit2.body.conv1.bn.num_batches_tracked',
-                'layer2.1.conv2.weight': 'features.stage2.unit2.body.conv2.conv.weight',
-                'layer2.1.bn2.weight': 'features.stage2.unit2.body.conv2.bn.weight',
-                'layer2.1.bn2.bias': 'features.stage2.unit2.body.conv2.bn.bias',
-                'layer2.1.bn2.running_mean': 'features.stage2.unit2.body.conv2.bn.running_mean',
-                'layer2.1.bn2.running_var': 'features.stage2.unit2.body.conv2.bn.running_var',
-                'layer2.1.bn2.num_batches_tracked': 'features.stage2.unit2.body.conv2.bn.num_batches_tracked',
-                'layer3.0.conv1.weight': 'features.stage3.unit1.body.conv1.conv.weight',
-                'layer3.0.bn1.weight': 'features.stage3.unit1.body.conv1.bn.weight',
-                'layer3.0.bn1.bias': 'features.stage3.unit1.body.conv1.bn.bias',
-                'layer3.0.bn1.running_mean': 'features.stage3.unit1.body.conv1.bn.running_mean',
-                'layer3.0.bn1.running_var': 'features.stage3.unit1.body.conv1.bn.running_var',
-                'layer3.0.bn1.num_batches_tracked': 'features.stage3.unit1.body.conv1.bn.num_batches_tracked',
-                'layer3.0.conv2.weight': 'features.stage3.unit1.body.conv2.conv.weight',
-                'layer3.0.bn2.weight': 'features.stage3.unit1.body.conv2.bn.weight',
-                'layer3.0.bn2.bias': 'features.stage3.unit1.body.conv2.bn.bias',
-                'layer3.0.bn2.running_mean': 'features.stage3.unit1.body.conv2.bn.running_mean',
-                'layer3.0.bn2.running_var': 'features.stage3.unit1.body.conv2.bn.running_var',
-                'layer3.0.bn2.num_batches_tracked': 'features.stage3.unit1.body.conv2.bn.num_batches_tracked',
-                'layer3.0.downsample.0.weight': 'features.stage3.unit1.identity_conv.conv.weight',
-                'layer3.0.downsample.1.weight': 'features.stage3.unit1.identity_conv.bn.weight',
-                'layer3.0.downsample.1.bias': 'features.stage3.unit1.identity_conv.bn.bias',
-                'layer3.0.downsample.1.running_mean': 'features.stage3.unit1.identity_conv.bn.running_mean',
-                'layer3.0.downsample.1.running_var': 'features.stage3.unit1.identity_conv.bn.running_var',
-                'layer3.0.downsample.1.num_batches_tracked': 'features.stage3.unit1.identity_conv.bn.num_batches_tracked',
-                'layer3.1.conv1.weight': 'features.stage3.unit2.body.conv1.conv.weight',
-                'layer3.1.bn1.weight': 'features.stage3.unit2.body.conv1.bn.weight',
-                'layer3.1.bn1.bias': 'features.stage3.unit2.body.conv1.bn.bias',
-                'layer3.1.bn1.running_mean': 'features.stage3.unit2.body.conv1.bn.running_mean',
-                'layer3.1.bn1.running_var': 'features.stage3.unit2.body.conv1.bn.running_var',
-                'layer3.1.bn1.num_batches_tracked': 'features.stage3.unit2.body.conv1.bn.num_batches_tracked',
-                'layer3.1.conv2.weight': 'features.stage3.unit2.body.conv2.conv.weight',
-                'layer3.1.bn2.weight': 'features.stage3.unit2.body.conv2.bn.weight',
-                'layer3.1.bn2.bias': 'features.stage3.unit2.body.conv2.bn.bias',
-                'layer3.1.bn2.running_mean': 'features.stage3.unit2.body.conv2.bn.running_mean',
-                'layer3.1.bn2.running_var': 'features.stage3.unit2.body.conv2.bn.running_var',
-                'layer3.1.bn2.num_batches_tracked': 'features.stage3.unit2.body.conv2.bn.num_batches_tracked',
-                'layer4.0.conv1.weight': 'features.stage4.unit1.body.conv1.conv.weight',
-                'layer4.0.bn1.weight': 'features.stage4.unit1.body.conv1.bn.weight',
-                'layer4.0.bn1.bias': 'features.stage4.unit1.body.conv1.bn.bias',
-                'layer4.0.bn1.running_mean': 'features.stage4.unit1.body.conv1.bn.running_mean',
-                'layer4.0.bn1.running_var': 'features.stage4.unit1.body.conv1.bn.running_var',
-                'layer4.0.bn1.num_batches_tracked': 'features.stage4.unit1.body.conv1.bn.num_batches_tracked',
-                'layer4.0.conv2.weight': 'features.stage4.unit1.body.conv2.conv.weight',
-                'layer4.0.bn2.weight': 'features.stage4.unit1.body.conv2.bn.weight',
-                'layer4.0.bn2.bias': 'features.stage4.unit1.body.conv2.bn.bias',
-                'layer4.0.bn2.running_mean': 'features.stage4.unit1.body.conv2.bn.running_mean',
-                'layer4.0.bn2.running_var': 'features.stage4.unit1.body.conv2.bn.running_var',
-                'layer4.0.bn2.num_batches_tracked': 'features.stage4.unit1.body.conv2.bn.num_batches_tracked',
-                'layer4.0.downsample.0.weight': 'features.stage4.unit1.identity_conv.conv.weight',
-                'layer4.0.downsample.1.weight': 'features.stage4.unit1.identity_conv.bn.weight',
-                'layer4.0.downsample.1.bias': 'features.stage4.unit1.identity_conv.bn.bias',
-                'layer4.0.downsample.1.running_mean': 'features.stage4.unit1.identity_conv.bn.running_mean',
-                'layer4.0.downsample.1.running_var': 'features.stage4.unit1.identity_conv.bn.running_var',
-                'layer4.0.downsample.1.num_batches_tracked': 'features.stage4.unit1.identity_conv.bn.num_batches_tracked',
-                'layer4.1.conv1.weight': 'features.stage4.unit2.body.conv1.conv.weight',
-                'layer4.1.bn1.weight': 'features.stage4.unit2.body.conv1.bn.weight',
-                'layer4.1.bn1.bias': 'features.stage4.unit2.body.conv1.bn.bias',
-                'layer4.1.bn1.running_mean': 'features.stage4.unit2.body.conv1.bn.running_mean',
-                'layer4.1.bn1.running_var': 'features.stage4.unit2.body.conv1.bn.running_var',
-                'layer4.1.bn1.num_batches_tracked': 'features.stage4.unit2.body.conv1.bn.num_batches_tracked',
-                'layer4.1.conv2.weight': 'features.stage4.unit2.body.conv2.conv.weight',
-                'layer4.1.bn2.weight': 'features.stage4.unit2.body.conv2.bn.weight',
-                'layer4.1.bn2.bias': 'features.stage4.unit2.body.conv2.bn.bias',
-                'layer4.1.bn2.running_mean': 'features.stage4.unit2.body.conv2.bn.running_mean',
-                'layer4.1.bn2.running_var': 'features.stage4.unit2.body.conv2.bn.running_var',
-                'layer4.1.bn2.num_batches_tracked': 'features.stage4.unit2.body.conv2.bn.num_batches_tracked',
-                'fc.weight': 'output.weight',
-                'fc.bias': 'output.bias'}
-
-
-# import numpy as np
-
-# class ModifiedSubset(Subset):
-#     def __init__(self, dataset, indices):
-#         super().__init__(dataset, indices)
-#         self.transform = None
-#
-#     def apply_transform(self, x):
-#         if self.transform is not None:
-#             if isinstance(x, tuple):
-#                 return self.transform(x[0]), *x[1:]
-#             else:
-#                 return self.transform(x)
-#         return x
-#
-#     def __getitem__(self, idx):
-#         if isinstance(idx, list):
-#             x = self.dataset[[self.indices[i] for i in idx]]
-#             return self.apply_transform(x)
-#         x = self.dataset[self.indices[idx]]
-#         return self.apply_transform(x)
-
 
 class ModelParameters(object):
     def __init__(self,
@@ -164,7 +16,7 @@ class ModelParameters(object):
                  float_accuracy,
                  preprocess=get_default_keras_model_preprocess(),
                  evaluation_function=keras_model_accuracy_evaluation,
-                 model_params={},
+                 model_params=None,
                  is_tfimm: bool = False,
                  interpolation="bilinear",
                  image_size=(224, 224, 3),
@@ -176,7 +28,7 @@ class ModelParameters(object):
         self.float_accuracy = float_accuracy
         self.preprocess = preprocess
         self.evaluation_function = evaluation_function
-        self.model_params = model_params
+        self.model_params = model_params if model_params is not None else {}
         self.is_tfimm = is_tfimm
         self.interpolation = interpolation
         self.image_size = image_size
@@ -193,9 +45,6 @@ class ModelParameters(object):
 
             pt_model = timm.create_model(cfg.url.split("]")[-1], pretrained=True)
             pt_state_dict = pt_model.state_dict()
-            # if self.name == "resnet18":
-            #     state_dict_temp = torch.load("/data/projects/swat/users/haih/gumbel-rounding/models/resnet18.pth")
-            #     pt_state_dict = {target: state_dict_temp[source] for target, source in resnet18dict.items()}
             load_pytorch_weights_in_tf2_model(model, pt_state_dict, allow_missing_keys=self.allow_missing_keys)
 
             return model

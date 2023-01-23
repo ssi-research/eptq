@@ -11,7 +11,7 @@ def build_target_platform_capabilities(mixed_precision: bool, activation_nbits: 
                                        disable_weights_quantization: bool,
                                        disable_activation_quantization: bool, weights_cr, activation_cr, total_cr,
                                        mixed_precision_config: MPCONFIG = MPCONFIG.MP_PARTIAL_CANDIDATES):
-    # TODO: Add logging
+
     bit_width_mapping = MP_BITWIDTH_OPTIONS_DICT[mixed_precision_config]
     if mixed_precision:
         weights_mp = weights_cr is not None or total_cr is not None
