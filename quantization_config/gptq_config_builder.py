@@ -25,7 +25,7 @@ def build_gptq_config(args, n_iter):
     else:
         optimizer_quantization_param = None
 
-    quantizer_config = mct.SoftQuantizerConfig(num_batches=n_iter, entropy_regularization=args.gamma_temperature)
+    quantizer_config = mct.SoftQuantizerConfig(entropy_regularization=args.gamma_temperature)
 
     return mct.GradientPTQConfigV2(n_epochs=int(np.ceil(args.gptq_num_calibration_iter/n_iter)),
                                    optimizer=optimizer,
