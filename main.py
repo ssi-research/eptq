@@ -9,77 +9,18 @@ from models.model_dictionary import model_dictionary
 import model_compression_toolkit as mct
 import quantization_config
 from datetime import datetime
-from augmentation.augmenetation_piple import generate_augmentation_function
 
-PROJECT_NAME = 'gumbel-rounding'
+PROJECT_NAME = 'eptq'
 FILE_TIME_STAMP = datetime.now().strftime("%d-%b-%Y__%H:%M:%S")
-#
-MPOVERRIDE_DICT_W = {"resnet18": {8: [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 2, 1, 1, 1, 1, 1, 1],
-                                  8.8: [0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1],
-                                  9.8: [0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1],
-                                  11: [0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 2, 1],
-                                  12.5: [0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 2, 2, 2, 1]},
-                     "mbv2": {
-                         8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1,
-                             1, 0, 0, 2, 1, 1, 2, 0, 1, 1, 1, 0, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1],
 
-                         8.8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1,
-                               0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], },
-                     "regnetx_006": {
-                         8: [0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1],
-                         8.8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                               1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 2, 1, 1],
-                         9.8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                               1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 2, 2, 1, 2, 1, 1, 2, 1, 1, 2, 1, 2, 1, 1],
-                         11: [0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1,
-                              2, 1, 1, 2, 1, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 1, 2, 2, 1],
-                         12.5: [0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 2, 1, 2, 1, 1, 2, 1, 2, 2, 1,
-                                2, 2, 2, 1, 2, 1, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1]
 
-                     }
-
-                     }
-# MPOVERRIDE_DICT_T = {"resnet18": {
-#     8: [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 3, 0, 0, 0, 3, 0, 1, 3, 0, 3, 0, 1, 0, 3, 0, 1, 3, 0, 3, 0, 1, 0, 6,
-#         0, 3]}}
-
-MPOVERRIDE_DICT_W_ALL = {"resnet18": {8: [0, 0, 2, 1, 2, 2, 1, 2, 2, 3, 3, 2, 4, 4, 4, 4, 3, 4, 4, 5, 3],
-                                      8.8: [0, 0, 2, 1, 2, 2, 0, 3, 3, 4, 4, 4, 4, 4, 5, 4, 3, 5, 4, 5, 4],
-                                      9.8: [0, 1, 3, 2, 3, 3, 1, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 4],
-                                      11: [0, 2, 3, 2, 4, 3, 1, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 5],
-                                      12.5: [2, 3, 5, 5, 5, 4, 2, 5, 5, 5, 5, 6, 5, 5, 6, 5, 5, 5, 6, 6, 5]}}
-MPOVERRIDE_DICT_T = {"regnetx_006": {
-    6: [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 3, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 3, 0, 1,
-        0, 1, 0, 3, 0, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 3, 0, 0, 0, 1, 0, 3, 0, 0],
-    7: [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 0, 3, 0, 1, 0, 1, 0, 3, 0, 3, 0, 0, 1, 0, 3, 0, 1, 0, 1, 0, 3, 0, 1,
-        0, 1, 0, 3, 0, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 3, 0, 3],
-    8: [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-        0, 0, 0, 3, 0, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 3, 0, 3, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 6, 0, 1,
-        0, 1, 0, 6, 0, 1, 0, 1, 0, 6, 0, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 3, 0, 1, 0, 2, 0, 3, 0, 3],
-    8.8: [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 3, 0, 0, 0, 0, 1, 0, 3, 0, 1,
-          0, 1, 0, 3, 0, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 3, 0, 3, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 6, 0, 1,
-          0, 1, 0, 6, 0, 1, 0, 1, 0, 6, 0, 1, 0, 1, 0, 6, 0, 1, 0, 1, 0, 6, 0, 1, 0, 2, 0, 3, 0, 3],
-    9.8: [0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 1, 0, 3, 0, 1,
-          0, 1, 0, 3, 0, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 3, 0, 3, 1, 0, 1, 0, 3, 0, 2, 0, 1, 0, 6, 0, 2,
-          0, 1, 0, 6, 0, 2, 0, 1, 0, 6, 0, 1, 0, 1, 0, 6, 0, 1, 0, 1, 0, 6, 0, 1, 0, 2, 0, 3, 0, 3],
-    11: [0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1,
-         2, 1, 1, 2, 1, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 1, 2, 2, 1],
-    12.5: [0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 2, 1, 2, 1, 1, 2, 1, 2, 2, 1,
-           2, 2, 2, 1, 2, 1, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1]
-
-}}
-
-RESNET50 = [0, 1, 4, 2, 18, 0, 4, 0, 25, 4, 5, 1, 5, 2, 39, 4, 4, 0, 4, 1, 39, 4, 4, 35, 0, 5, 0, 28, 1, 5, 0, 4, 0, 35,
-            1, 5, 1, 5, 0, 37, 1, 5, 0, 5, 2, 36, 0, 5, 46, 0, 5, 1, 36, 1, 5, 1, 5, 1, 45, 1, 5, 3, 6, 1, 45, 0, 5, 2,
-            6, 1, 45, 1, 6, 1, 6, 2, 42, 1, 6, 1, 6, 1, 43, 0, 5, 47, 1, 6, 0, 46, 0, 5, 2, 5, 0, 42, 0, 5, 0, 6, 0, 45,
-            1, 37]
-RESNET50_TOTAL = [0, 1, 5, 1, 26, 1, 4, 0, 33, 5, 5, 1, 4, 2, 40, 5, 4, 0, 4, 0, 40, 5, 4, 38, 2, 5, 2, 30, 2, 5, 0, 4,
-                  1, 37, 2, 5, 1, 5, 0, 37, 2, 5, 3, 5, 3, 38, 2, 5, 35, 2, 5, 1, 35, 1, 5, 1, 5, 0, 45, 0, 5, 1, 6, 1,
-                  42, 0, 5, 1, 6, 1, 43, 1, 5, 1, 6, 3, 42, 1, 5, 2, 6, 1, 42, 0, 5, 45, 1, 6, 1, 46, 1, 5, 1, 5, 0, 44,
-                  0, 5, 0, 6, 0, 42, 0, 41]
+# TODO:
+#  1) Handle (or remove?) wandb logging
+#  2) Remove/update analysis code and save result
+#  3) Fix dataset path
+#  4) Update methods comment and typehints
+#  5) Add option for scaled_hessian_weights?
+#  6) Align with MCT (after inserting soft quantizer and other changes to MCT)
 
 
 def argument_handler():
@@ -105,19 +46,8 @@ def argument_handler():
     parser.add_argument('--n_images', type=int, default=1024)
 
     #####################################################################
-    # Augmentations
-    #####################################################################
-    parser.add_argument('--disable_augmentations', action='store_false', default=True)
-    parser.add_argument('--aug_mean', nargs=3, type=float, default=[0.485, 0.456, 0.406])
-    parser.add_argument('--aug_std', nargs=3, type=float, default=[0.229, 0.224, 0.225])
-    parser.add_argument('--aug_alpha', type=float, default=0.25)
-    parser.add_argument('--aug_p', type=float, default=None)
-    parser.add_argument('--aug_dequantization', action='store_true', default=False)
-
-    #####################################################################
     # MCT Config
     #####################################################################
-    parser.add_argument('--num_calibration_iter', type=int, default=10)
     parser.add_argument('--weights_nbits', type=int, default=4,
                         help='The number of bits for weights quantization')
     parser.add_argument('--activation_nbits', type=int, default=8,
@@ -132,8 +62,8 @@ def argument_handler():
     #####################################################################
     parser.add_argument('--mixed_precision', action='store_true', default=False,
                         help='Enable Mixed-Precision quantization')
-    parser.add_argument('--mixed_precision_override', action='store_true', default=False,
-                        help='Enable Mixed-Precision quantization')
+    parser.add_argument("--mixed_precision_configuration", nargs="+", default=None,
+                        help='Mixed-precision configuration to set to the model instead of searching')
     parser.add_argument('--mp_all_bits', action='store_true', default=False,
                         help='Enable Mixed-Precision quantization')
     parser.add_argument('--weights_cr', type=float,
@@ -144,57 +74,30 @@ def argument_handler():
                         help='Total compression rate for mixed-precision')
     parser.add_argument('--num_samples_for_distance', type=int, default=32,
                         help='Number of samples in distance matrix for distance computation')
-    parser.add_argument('--use_grad_based_weights', action='store_true', default=False,
-                        help='A flag to enable gradient-based weights for distance metric weighted average')
-    parser.add_argument('--dense2bit', action='store_true', default=False,
-                        help='Enable Mixed-Precision quantization')
-    parser.add_argument('--six_bits', action='store_true', default=False,
-                        help='Enable Mixed-Precision quantization')
+
     #####################################################################
     # Gumbel Rounding Config
     #####################################################################
     parser.add_argument('--gptq', action='store_true', default=False, help='Enable GPTQ quantization')
     parser.add_argument('--gptq_num_calibration_iter', type=int, default=40000)
-    parser.add_argument('--ste_rounding', action='store_true', default=False)
-    parser.add_argument('--sam_optimization', action='store_true', default=False)
     parser.add_argument('--temperature_learning', action='store_true', default=False)
     parser.add_argument('--bias_learning', action='store_true', default=False)
-    parser.add_argument('--is_symmetric', action='store_true', default=False)
-    parser.add_argument('--is_symmetric_activation', action='store_true', default=False)
     parser.add_argument('--quantization_parameters_learning', action='store_true', default=False)
-    parser.add_argument('--rho', type=float, default=0.01)
-    parser.add_argument('--minimal_temp', type=float, default=0.1)
-    parser.add_argument('--maximal_temp', type=float, default=0.5)
     parser.add_argument('--gamma_temperature', type=float, default=0.0)
     parser.add_argument('--lr', type=float, default=0.15, help='GPTQ learning rate')
     parser.add_argument('--lr_rest', type=float, default=1e-4, help='GPTQ learning rate')
     parser.add_argument('--lr_bias', type=float, default=1e-4, help='GPTQ learning rate')
     parser.add_argument('--lr_quantization_param', type=float, default=1e-3, help='GPTQ learning rate')
-    parser.add_argument('--gumbel_scale', type=float, default=1.0, help='Gumbel randomization tensor factor')
-    parser.add_argument('--gumbel_scale_per_bitwidth', nargs="+", default=None,
-                        help='List of gumbel scale values per bit-width. If supplied, should contain exactly 3 values,'
-                             'for 2, 4 and 8 bit (in this order).')
-    parser.add_argument('--disable_activation_quantization_gptq', action='store_true', default=False,
-                        help='Enable GPTQ quantization')
-
-    parser.add_argument('--m8', type=int, default=0)
-    parser.add_argument('--m7', type=int, default=0)
-    parser.add_argument('--m6', type=int, default=0)
-    parser.add_argument('--m5', type=int, default=0)
-    parser.add_argument('--m4', type=int, default=0)
-    parser.add_argument('--m3', type=int, default=0)
-    parser.add_argument('--m2', type=int, default=0)
 
     # Loss
     parser.add_argument('--hessian_weighting', action='store_true', default=False)
     parser.add_argument('--bn_p_norm', action='store_true', default=False)
     parser.add_argument('--activation_bias', action='store_true', default=False)
     parser.add_argument('--norm_loss', action='store_true', default=False)
-    parser.add_argument('--jacobian_weights', action='store_true', default=False)
-    parser.add_argument('--jacobian_weights_num_samples', type=int, default=16)
-    parser.add_argument('--jacobian_weights_num_iter', type=int, default=50)
+    parser.add_argument('--hessian_weights', action='store_true', default=False)
+    parser.add_argument('--hessian_weights_num_samples', type=int, default=16)
+    parser.add_argument('--hessian_weights_num_iter', type=int, default=50)
     parser.add_argument('--norm_weights', action='store_true', default=False)
-    parser.add_argument('--gptq_log_norm', action='store_true', default=False)
 
     args = parser.parse_args()
     return args
@@ -229,26 +132,13 @@ def main():
     #################################################
     # Build quantization configuration
     #################################################
-    configuration_overwrite = None
-    if args.mixed_precision_override:
-        weights_mp = args.weights_cr is not None or args.total_cr is not None
-        activation_mp = args.activation_cr is not None or args.total_cr is not None
-        if weights_mp and activation_mp:
-            if args.model_name == "tv_resnet50":
-                configuration_overwrite = RESNET50_TOTAL
-            else:
-                configuration_overwrite = MPOVERRIDE_DICT_T[args.model_name][args.total_cr]
-        elif weights_mp:
-            if args.mp_all_bits:
-                configuration_overwrite = MPOVERRIDE_DICT_W_ALL[args.model_name][args.weights_cr]
-            else:
-                configuration_overwrite = MPOVERRIDE_DICT_W[args.model_name][args.weights_cr]
-        else:
-            raise NotImplemented
+    configuration_override = None
+    if args.mixed_precision_configuration is not None:
+        configuration_override = [int(b) for b in args.mixed_precision_configuration]
+
     core_config = quantization_config.core_config_builder(args.mixed_precision,
                                                           args.num_samples_for_distance,
-                                                          args.use_grad_based_weights,
-                                                          configuration_overwrite)
+                                                          configuration_override)
 
     #################################################
     # Run the Model Compression Toolkit
@@ -265,13 +155,14 @@ def main():
         args.disable_activation_quantization,
         args.weights_cr, args.activation_cr,
         args.total_cr,
-        mixed_precision_config=mixed_precision_config,
-        is_symmetric=args.is_symmetric, is_symmetric_act=args.is_symmetric_activation)
+        mixed_precision_config=mixed_precision_config)
+
     #################################################
     # Generate Model
     #################################################
     model_cfg = model_dictionary.get(args.model_name)
     model = model_cfg.get_model()
+
     #################################################
     # Floating-point accuracy
     #################################################
@@ -280,16 +171,11 @@ def main():
         batch_size=args.batch_size,
         image_size=(args.image_size, args.image_size))
     float_result = get_float_result(args, model_cfg, model, val_dataset)
+
     #################################################
     # Get datasets
     #################################################
-    if args.disable_augmentations:
-        augmentation_pipeline = None
-    else:
-        augmentation_pipeline = generate_augmentation_function(tuple(args.aug_mean), tuple(args.aug_std),
-                                                               args.aug_alpha, args.aug_p, args.aug_dequantization)
-
-    n_iter = math.ceil(args.n_images / args.batch_size)
+    n_iter = math.ceil(args.n_images // args.batch_size)
     representative_data_gen = model_cfg.get_representative_dataset(
         representative_dataset_folder=args.representative_dataset_folder,
         n_iter=n_iter,
@@ -298,8 +184,7 @@ def main():
         image_size=args.image_size,
         preprocessing=None,
         seed=args.random_seed,
-        debug=args.debug,
-        augmentation_pipepline=augmentation_pipeline)
+        debug=args.debug)
 
     target_kpi, full_kpi = quantization_config.build_target_kpi(args.weights_cr, args.activation_cr, args.total_cr,
                                                                 args.mixed_precision, model, representative_data_gen,

@@ -197,7 +197,3 @@ def build_regnet(cfg: RegNetCfg,  num_classes=1000, output_stride=32):
 
 def regnetx_006():
     return build_regnet, model_cfgs['regnetx_006']
-
-
-def regnetx_032():
-    return build_regnet, model_cfgs['regnetx_032']

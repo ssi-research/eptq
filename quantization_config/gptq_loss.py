@@ -49,19 +49,6 @@ class GPTQMultipleTensorsLoss:
         self.alpha = None
         self.norm_loss = norm_loss
 
-    # def upload_loss_alpha(self, *args):
-    #     if self.alpha is None:
-    #         self.alpha = np.zeros([len(args)])
-    #     for i, li in enumerate(args):  # alpha EMA
-    #         self.alpha[i] += (1 - self.beta) * (np.log(li + self.eps) - self.alpha[i])
-    #
-    # def weight_sum_loss(self, *args):
-    #     total_loss = 0
-    #     for i, t in enumerate(args):
-    #         alpha = self.alpha[i] / (1 - self.beta ** self.i)  # Bias correction of EMA
-    #         total_loss = total_loss + np.exp(-alpha) * t
-    #     return total_loss
-
     def __call__(self,
                  fxp_act_list: List[tf.Tensor],
                  flp_act_list: List[tf.Tensor],
@@ -86,8 +73,6 @@ class GPTQMultipleTensorsLoss:
         Returns:
             List of cosine similarities.
         """
-        # p_vector = [1 + 0.9 * tf.sigmoid(tf.reduce_mean(gamma) - 1) if gamma is not None else 2.0 for gamma in
-        #             act_bn_std]
         p_vector = None
 
         loss_act, loss_activation_bias = activation_mse(flp_act_list, fxp_act_list, p_vector=p_vector,
