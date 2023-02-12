@@ -4,12 +4,8 @@ from datetime import datetime
 
 FILE_TIME_STAMP = datetime.now().strftime("%d-%b-%Y__%H:%M:%S")
 
-if socket.gethostname() == "ofirgo-ub20":
-    VAL_DIR = '/data/projects/swat/datasets_src/ImageNet/ILSVRC2012_img_val_TFrecords'
-    TRAIN_DIR = '/data/projects/swat/datasets_src/ImageNet/ILSVRC2012_img_train'
-else:
-    VAL_DIR = '/local_datasets/ImageNet/ILSVRC2012_img_val_TFrecords'
-    TRAIN_DIR = '/local_datasets/ImageNet/ILSVRC2012_img_train'
+VAL_DIR = '/local_datasets/ImageNet/ILSVRC2012_img_val_TFrecords'
+TRAIN_DIR = '/local_datasets/ImageNet/ILSVRC2012_img_train'
 
 
 TRAIN_SET = 'train_set'
