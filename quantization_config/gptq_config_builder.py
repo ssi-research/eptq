@@ -7,7 +7,7 @@ import numpy as np
 import wandb
 
 
-def log_func(loss_value):
+def log_func(loss_value, grads, vars, compare_points):
     results_dict = {}
     results_dict.update({'loss': loss_value.numpy()})
     wandb.log(results_dict)
