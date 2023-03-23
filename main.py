@@ -19,8 +19,7 @@ FILE_TIME_STAMP = datetime.now().strftime("%d-%b-%Y__%H:%M:%S")
 #  2) Remove/update analysis code and save result
 #  3) Fix dataset path
 #  4) Update methods comment and typehints
-#  5) Add option for scaled_hessian_weights?
-#  6) Align with MCT (after inserting soft quantizer and other changes to MCT)
+#  5) Add help messages to program arguments
 
 
 def argument_handler():
@@ -80,10 +79,9 @@ def argument_handler():
     #####################################################################
     parser.add_argument('--gptq', action='store_true', default=False, help='Enable GPTQ quantization')
     parser.add_argument('--gptq_num_calibration_iter', type=int, default=40000)
-    parser.add_argument('--temperature_learning', action='store_true', default=False)
     parser.add_argument('--bias_learning', action='store_true', default=False)
     parser.add_argument('--quantization_parameters_learning', action='store_true', default=False)
-    parser.add_argument('--gamma_temperature', type=float, default=0.0)
+    parser.add_argument('--reg_factor', type=float, default=0.01)
     parser.add_argument('--lr', type=float, default=0.15, help='GPTQ learning rate')
     parser.add_argument('--lr_rest', type=float, default=1e-4, help='GPTQ learning rate')
     parser.add_argument('--lr_bias', type=float, default=1e-4, help='GPTQ learning rate')
@@ -98,6 +96,7 @@ def argument_handler():
     parser.add_argument('--hessian_weights_num_samples', type=int, default=16)
     parser.add_argument('--hessian_weights_num_iter', type=int, default=50)
     parser.add_argument('--norm_weights', action='store_true', default=False)
+    parser.add_argument('--scale_log_norm', action='store_true', default=False)
 
     args = parser.parse_args()
     return args
@@ -195,12 +194,12 @@ def main():
         gptq_config = quantization_config.build_gptq_config(args, n_iter)
 
         quantized_model, quantization_info = \
-            mct.keras_gradient_post_training_quantization_experimental(model,
-                                                                       representative_data_gen,
-                                                                       gptq_config=gptq_config,
-                                                                       target_kpi=target_kpi,
-                                                                       core_config=core_config,
-                                                                       target_platform_capabilities=target_platform_cap)
+            mct.gptq.keras_gradient_post_training_quantization_experimental(model,
+                                                                            representative_data_gen,
+                                                                            gptq_config=gptq_config,
+                                                                            target_kpi=target_kpi,
+                                                                            core_config=core_config,
+                                                                            target_platform_capabilities=target_platform_cap)
     else:
         quantized_model, quantization_info = \
             mct.keras_post_training_quantization_experimental(model,

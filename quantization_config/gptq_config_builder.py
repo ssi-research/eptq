@@ -1,6 +1,8 @@
 import tensorflow as tf
 import model_compression_toolkit as mct
-from model_compression_toolkit import RoundingType
+from model_compression_toolkit.gptq import RoundingType
+from model_compression_toolkit.gptq.common.gptq_config import GPTQHessianWeightsConfig
+from model_compression_toolkit.gptq.common.gptq_constants import QUANT_PARAM_LEARNING_STR
 from utils.radam_optimizer import RAdam
 from quantization_config.gptq_loss import GPTQMultipleTensorsLoss
 import numpy as np
@@ -25,21 +27,22 @@ def build_gptq_config(args, n_iter):
     else:
         optimizer_quantization_param = None
 
-    quantizer_config = mct.SoftQuantizerConfig(entropy_regularization=args.gamma_temperature)
+    hessians_weights_config = GPTQHessianWeightsConfig(hessians_num_samples=args.hessian_weights_num_samples,
+                                                       norm_weights=args.norm_weights,
+                                                       log_norm=True,
+                                                       scale_log_norm=args.scale_log_norm,
+                                                       hessians_n_iter=args.hessian_weights_num_iter)
 
-    return mct.GradientPTQConfigV2(n_epochs=int(np.ceil(args.gptq_num_calibration_iter/n_iter)),
-                                   optimizer=optimizer,
-                                   optimizer_rest=optimizer_rest,
-                                   loss=GPTQMultipleTensorsLoss(norm_loss=args.norm_loss),
-                                   train_bias=args.bias_learning,
-                                   quantization_parameters_learning=args.quantization_parameters_learning,
-                                   rounding_type=RoundingType.SoftQuantizer,
-                                   log_function=log_func,
-                                   use_jac_based_weights=args.hessian_weights,
-                                   num_samples_for_loss=args.hessian_weights_num_samples,
-                                   norm_weights=args.norm_weights,
-                                   optimizer_bias=optimizer_bias,
-                                   optimizer_quantization_parameter=optimizer_quantization_param,
-                                   quantizer_config=quantizer_config,
-                                   log_norm=True,
-                                   weights_n_iter=args.hessian_weights_num_iter)
+    return mct.gptq.GradientPTQConfigV2(n_epochs=int(np.ceil(args.gptq_num_calibration_iter / n_iter)),
+                                        optimizer=optimizer,
+                                        optimizer_rest=optimizer_rest,
+                                        loss=GPTQMultipleTensorsLoss(norm_loss=args.norm_loss),
+                                        train_bias=args.bias_learning,
+                                        rounding_type=RoundingType.SoftQuantizer,
+                                        log_function=log_func,
+                                        optimizer_bias=optimizer_bias,
+                                        optimizer_quantization_parameter=optimizer_quantization_param,
+                                        regularization_factor=args.reg_factor,
+                                        hessian_weights_config=hessians_weights_config,
+                                        gptq_quantizer_params_override={QUANT_PARAM_LEARNING_STR:
+                                                                            args.quantization_parameters_learning})
