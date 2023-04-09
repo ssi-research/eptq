@@ -3,7 +3,7 @@ import timm
 import torch
 import numpy as np
 from tensorflow import keras
-from datasets.image_utils import get_default_keras_model_preprocess, keras_model_accuracy_evaluation, \
+from utils.image_utils import get_default_keras_model_preprocess, keras_model_accuracy_evaluation, \
     get_default_keras_data_preprocess
 from models.tfimm_modified.load_weight_updated import load_pytorch_weights_in_tf2_model
 
@@ -146,15 +146,8 @@ class ModelParameters(object):
         return representative_dataset
 
     def get_representative_dataset(self, representative_dataset_folder, n_iter, batch_size, n_images, image_size,
-                                   preprocessing=None, seed=0, debug: bool = False):
-        if debug:
-            x = np.random.randn(batch_size, image_size, image_size, 3)
+                                   preprocessing=None, seed=0):
 
-            def representative_dataset():
-                for _ in range(n_iter):
-                    yield [x]
-
-            return representative_dataset
         if preprocessing is None:
             preprocessing = get_default_keras_data_preprocess(image_size)
 

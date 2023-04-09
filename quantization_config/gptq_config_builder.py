@@ -33,13 +33,13 @@ def build_gptq_config(args, n_iter):
                                                        scale_log_norm=args.scale_log_norm,
                                                        hessians_n_iter=args.hessian_weights_num_iter)
 
-    return mct.gptq.GradientPTQConfigV2(n_epochs=int(np.ceil(args.gptq_num_calibration_iter / n_iter)),
+    return mct.gptq.GradientPTQConfigV2(n_epochs=int(np.ceil(args.eptq_num_calibration_iter / n_iter)),
                                         optimizer=optimizer,
                                         optimizer_rest=optimizer_rest,
                                         loss=GPTQMultipleTensorsLoss(norm_loss=args.norm_loss),
                                         train_bias=args.bias_learning,
                                         rounding_type=RoundingType.SoftQuantizer,
-                                        log_function=log_func,
+                                        log_function=log_func if args.wandb else None,
                                         optimizer_bias=optimizer_bias,
                                         optimizer_quantization_parameter=optimizer_quantization_param,
                                         regularization_factor=args.reg_factor,

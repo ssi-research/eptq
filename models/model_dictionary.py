@@ -1,5 +1,5 @@
 from models.model_config import ModelParameters
-from datasets.image_utils import keras_model_accuracy_evaluation_timm
+from utils.image_utils import keras_model_accuracy_evaluation_timm
 from models.tfimm_modified.mlp_mixer.mlp_mixer_modified import mixer_b16_224
 from models.tfimm_modified.efficentnet.efficnet_modified import mobilenet_v2_100_m
 from models.tfimm_modified.regnet.regnet_modified import regnetx_006

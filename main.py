@@ -15,12 +15,13 @@ FILE_TIME_STAMP = datetime.now().strftime("%d-%b-%Y__%H:%M:%S")
 
 
 # TODO:
-#  1) Handle (or remove?) wandb logging
-#  2) Remove/update analysis code and save result
-#  3) Fix dataset path
-#  4) Update methods comment and typehints
-#  5) Add help messages to program arguments
-#  6) Models copyright message
+#  1) Remove/update analysis code and save result
+#  2) Fix dataset path
+#  3) Update methods comment and typehints
+#  4) Add help messages to program arguments
+#  5) Models copyright message
+#  6) Add Readme with instructions how to run the basic experiments
+#  7) Update requirements
 
 
 def argument_handler():
@@ -34,7 +35,7 @@ def argument_handler():
     parser.add_argument('--float_evaluation', action='store_true')
     parser.add_argument('--random_seed', type=int, default=0)
     parser.add_argument('--group', type=str)
-    parser.add_argument('--debug', action='store_true')
+    parser.add_argument('--wandb', default=False, action='store_true')
 
     #####################################################################
     # Dataset Config
@@ -78,25 +79,31 @@ def argument_handler():
     #####################################################################
     # Gumbel Rounding Config
     #####################################################################
-    parser.add_argument('--gptq', action='store_true', default=False, help='Enable GPTQ quantization')
-    parser.add_argument('--gptq_num_calibration_iter', type=int, default=40000)
-    parser.add_argument('--bias_learning', action='store_true', default=False)
-    parser.add_argument('--quantization_parameters_learning', action='store_true', default=False)
-    parser.add_argument('--reg_factor', type=float, default=0.01)
-    parser.add_argument('--lr', type=float, default=0.15, help='GPTQ learning rate')
-    parser.add_argument('--lr_rest', type=float, default=1e-4, help='GPTQ learning rate')
-    parser.add_argument('--lr_bias', type=float, default=1e-4, help='GPTQ learning rate')
-    parser.add_argument('--lr_quantization_param', type=float, default=1e-3, help='GPTQ learning rate')
+    parser.add_argument('--eptq', action='store_true', default=False, help='Enable EPTQ quantization')
+    parser.add_argument('--eptq_num_calibration_iter', type=int, default=20000)
+    parser.add_argument('--bias_learning', action='store_false', default=True,
+                        help='Whether to enable bias learning.')
+    parser.add_argument('--quantization_parameters_learning', action='store_false', default=True,
+                        help='Whether to enable learning of the quantization threshold.')
+    parser.add_argument('--lr', type=float, default=3e-2, help='EPTQ learning rate')
+    parser.add_argument('--lr_bias', type=float, default=1e-3, help='Bias learning rate')
+    parser.add_argument('--lr_quantization_param', type=float, default=1e-3,
+                        help='Threshold learning rate')
+    parser.add_argument('--lr_rest', type=float, default=1e-3, help='Learning rate for additional learnable parameters')
+    parser.add_argument('--reg_factor', type=float, default=0.01,
+                        help='regularization hyper-parameter for GPTQ soft quantizer')
 
     # Loss
-    parser.add_argument('--hessian_weighting', action='store_true', default=False)
-    parser.add_argument('--bn_p_norm', action='store_true', default=False)
-    parser.add_argument('--activation_bias', action='store_true', default=False)
-    parser.add_argument('--norm_loss', action='store_true', default=False)
-    parser.add_argument('--hessian_weights', action='store_true', default=False)
-    parser.add_argument('--hessian_weights_num_samples', type=int, default=16)
-    parser.add_argument('--hessian_weights_num_iter', type=int, default=50)
-    parser.add_argument('--norm_weights', action='store_true', default=False)
+    parser.add_argument('--norm_loss', action='store_true', default=False,
+                        help='Whether to normalize the loss value in GPTQ training.')
+    parser.add_argument('--hessian_weights', action='store_true', default=False,
+                        help='Whether to use the Hessian-based weights in the optimization loss function computation.')
+    parser.add_argument('--hessian_weights_num_samples', type=int, default=16,
+                        help='Number of samples to be used for Hessian-based weights computation.')
+    parser.add_argument('--hessian_weights_num_iter', type=int, default=100,
+                        help='Number of iterations to run the Hessian approximation.')
+    parser.add_argument('--norm_weights', action='store_true', default=False,
+                        help='Whether to normalize the Hessian-based loss weights.')
     parser.add_argument('--scale_log_norm', action='store_true', default=False)
 
     args = parser.parse_args()
@@ -122,9 +129,9 @@ def main():
     group = None
     name = None
     if args.group is not None:
-        group = f"{args.model_name}_{args.gptq}_{args.mixed_precision}_{args.group}"
+        group = f"{args.model_name}_{args.eptq}_{args.mixed_precision}_{args.group}"
         name = f"{args.model_name}_{FILE_TIME_STAMP}"
-    if not args.debug:
+    if args.wandb:
         wandb.init(project=PROJECT_NAME, group=group, name=name)
         wandb.config.update(args)
     utils.set_seed(args.random_seed)
@@ -183,15 +190,14 @@ def main():
         n_images=args.n_images,
         image_size=args.image_size,
         preprocessing=None,
-        seed=args.random_seed,
-        debug=args.debug)
+        seed=args.random_seed)
 
     target_kpi, full_kpi = quantization_config.build_target_kpi(args.weights_cr, args.activation_cr, args.total_cr,
                                                                 args.mixed_precision, model, representative_data_gen,
                                                                 core_config,
                                                                 target_platform_cap)
 
-    if args.gptq:
+    if args.eptq:
         gptq_config = quantization_config.build_gptq_config(args, n_iter)
 
         quantized_model, quantization_info = \
