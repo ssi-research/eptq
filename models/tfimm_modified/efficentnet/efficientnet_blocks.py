@@ -7,8 +7,6 @@ import tensorflow as tf
 from tfimm.layers import (
     DropPath,
     FanoutInitializer,
-    PadConv2D,
-    PadDepthwiseConv2D,
     act_layer_factory,
     norm_layer_factory,
 )
@@ -131,18 +129,13 @@ def create_conv2d(
         # ints, tuples, other iterables will continue to pass to normal conv and specify
         # non-square kernels
         raise NotImplementedError("MixedConv2D not implemented yet...")
-        # m = MixedConv2d(in_channels, out_channels, kernel_size, **kwargs)
     else:
         if nb_experts is not None:
             raise NotImplementedError("ConvConv2D not implemented yet...")
-            # m = CondConv2d(
-            #     in_channels, out_channels, kernel_size, groups=groups, **kwargs
-            # )
         elif depthwise:
             # Depthwise convolution
             conv = generate_pad_dw_conv(
                 kernel_size=kernel_size,
-                # depthwise_initializer=FanoutInitializer(depthwise=True),
                 **kwargs,
             )
         else:
@@ -150,7 +143,6 @@ def create_conv2d(
             conv = generate_pad_conv(
                 kernel_size=kernel_size,
                 groups=nb_groups,
-                # kernel_initializer=FanoutInitializer(nb_groups=nb_groups),
                 **kwargs,
             )
     return conv
@@ -591,97 +583,6 @@ class MInvertedResidual(object):
         if skip_connection:
             x = x + shortcut
         return x
-
-
-# class InvertedResidual(tf.keras.layers.Layer):
-#     """
-#     Inverted residual block with optional SE.
-#
-#     Originally used in MobileNet-V2, this layer is often referred to as "MBConv" (Mobile
-#     inverted bottleneck convolution) and is also used in
-#
-#     * MNasNet - https://arxiv.org/abs/1807.11626
-#     * EfficientNet - https://arxiv.org/abs/1905.11946
-#     * MobileNet-V2 - https://arxiv.org/abs/1801.04381
-#     * MobileNet-V3 - https://arxiv.org/abs/1905.02244
-#     """
-#
-#     def __init__(self, cfg: BlockArgs, **kwargs):
-#         super().__init__(**kwargs)
-#         self.cfg = cfg
-#         # This depends on number of input channels and is set during build phase
-#         self.skip_connection = None
-#
-#         norm_layer = norm_layer_factory(cfg.norm_layer)
-#         act_layer = act_layer_factory(cfg.act_layer)
-#
-#         # Point-wise expansion
-#         self.conv_pw = None
-#         self.bn1 = norm_layer(name="bn1")
-#         self.act1 = act_layer()
-#
-#         # Depth-wise convolution
-#         self.conv_dw = create_conv2d(
-#             kernel_size=cfg.dw_kernel_size,
-#             strides=cfg.stride,
-#             padding=cfg.padding,
-#             dilation_rate=cfg.dilation_rate,
-#             depthwise=True,
-#             name="conv_dw",
-#         )
-#         self.bn2 = norm_layer(name="bn2")
-#         self.act2 = act_layer()
-#
-#         # Squeeze-and-excitation
-#         self.se = (
-#             SqueezeExcite(rd_ratio=cfg.se_ratio, act_layer=cfg.act_layer, name="se")
-#             if cfg.use_se and cfg.se_ratio > 0.0
-#             else None
-#         )
-#
-#         # Point-wise linear projection
-#         self.conv_pwl = create_conv2d(
-#             filters=cfg.filters,
-#             kernel_size=cfg.pw_kernel_size,
-#             padding=cfg.padding,
-#             name="conv_pwl",
-#         )
-#         self.bn3 = norm_layer(name="bn3")
-#         self.drop_path = None
-#
-#     def build(self, input_shape):
-#         in_channels = input_shape[-1]
-#         self.skip_connection = (
-#                 self.cfg.stride == 1
-#                 and self.cfg.filters == in_channels
-#                 and self.cfg.skip_connection
-#         )
-#         self.conv_pw = create_conv2d(
-#             filters=make_divisible(in_channels * self.cfg.exp_ratio, 8),
-#             kernel_size=self.cfg.exp_kernel_size,
-#             padding=self.cfg.padding,
-#             nb_groups=self.cfg.nb_groups,
-#             name="conv_pw",
-#         )
-#         if self.skip_connection:
-#             self.drop_path = DropPath(drop_prob=self.cfg.drop_path_rate)
-#
-#     def call(self, x, training: bool = False):
-#         shortcut = x
-#         x = self.conv_pw(x)
-#         x = self.bn1(x, training=training)
-#         x = self.act1(x)
-#         x = self.conv_dw(x)
-#         x = self.bn2(x, training=training)
-#         x = self.act2(x)
-#         if self.se is not None:
-#             x = self.se(x, training=training)
-#         x = self.conv_pwl(x)
-#         x = self.bn3(x, training=training)
-#         if self.skip_connection:
-#             x = self.drop_path(x, training=training)
-#             x = x + shortcut
-#         return x
 
 
 class EdgeResidual(tf.keras.layers.Layer):

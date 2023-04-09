@@ -12,13 +12,9 @@ import timm
 import tensorflow as tf
 
 from tfimm.layers import (
-    # MLP,
-    # DropPath,
-    # PatchEmbeddings,
-    interpolate_pos_embeddings,
     norm_layer_factory,
 )
-from tfimm.models import ModelConfig, keras_serializable, register_model
+from tfimm.models import ModelConfig
 from tfimm.utils import (
     IMAGENET_DEFAULT_MEAN,
     IMAGENET_DEFAULT_STD,
@@ -26,7 +22,6 @@ from tfimm.utils import (
     IMAGENET_INCEPTION_STD,
 )
 
-# from .resnetv2 import ResNetV2, ResNetV2Config, ResNetV2Stem
 
 # model_registry will add each entrypoint fn to this
 __all__ = ["ViT", "MViTBlock", "ViTConfig"]
@@ -117,10 +112,6 @@ class ViTConfig(ModelConfig):
         """Number of patches without class and distillation tokens."""
         return self.grid_size[0] * self.grid_size[1]
 
-    # @property
-    # def transform_weights(self):
-    #     return {"pos_embed": ViT.transform_pos_embed}
-
 
 class MViTMultiHeadAttention(object):
     def __init__(
@@ -151,14 +142,11 @@ class MViTMultiHeadAttention(object):
         self.proj_drop = tf.keras.layers.Dropout(rate=drop_rate)
 
     def __call__(self, x: tf.Tensor):
-        features = OrderedDict()
 
         # B (batch size), N (sequence length), D (embedding dimension),
         # H (number of heads)
-        # batch_size, seq_length = tf.unstack(tf.shape(x)[:2])
         seq_length = tf.shape(x)[1]._inferred_value[0]
         qkv = self.qkv(x)  # (B, N, 3*D)
-        # qkv = tf.reshape(qkv, (batch_size, seq_length, 3, self.nb_heads, -1))
         qkv = tf.keras.layers.Reshape(target_shape=(seq_length, 3, self.nb_heads, -1))(qkv)
         qkv = tf.transpose(qkv, (2, 0, 3, 1, 4))  # (3, B, H, N, D/H)
         q, k, v = qkv[0], qkv[1], qkv[2]
@@ -169,64 +157,11 @@ class MViTMultiHeadAttention(object):
 
         x = tf.linalg.matmul(attn, v)  # (B, H, N, D/H)
         x = tf.transpose(x, (0, 2, 1, 3))  # (B, N, H, D/H)
-        # x = tf.reshape(x, (batch_size, seq_length, -1))  # (B, N, D)
         x = tf.keras.layers.Reshape(target_shape=(seq_length, -1))(x)  # (B, N, D)
 
         x = self.proj(x)
         x = self.proj_drop(x)
         return x
-
-
-# class ViTMultiHeadAttention(tf.keras.layers.Layer):
-#     def __init__(
-#         self,
-#         embed_dim: int,
-#         nb_heads: int,
-#         qkv_bias: bool,
-#         drop_rate: float,
-#         attn_drop_rate: float,
-#         **kwargs,
-#     ):
-#         super().__init__(**kwargs)
-#         self.embed_dim = embed_dim
-#         self.nb_heads = nb_heads
-#         self.qkv_bias = qkv_bias
-#         self.drop_rate = drop_rate
-#         self.attn_drop_rate = attn_drop_rate
-#
-#         head_dim = embed_dim // nb_heads
-#         self.scale = head_dim**-0.5
-#
-#         self.qkv = tf.keras.layers.Dense(
-#             units=3 * embed_dim, use_bias=qkv_bias, name="qkv"
-#         )
-#         self.attn_drop = tf.keras.layers.Dropout(rate=attn_drop_rate)
-#         self.proj = tf.keras.layers.Dense(units=embed_dim, name="proj")
-#         self.proj_drop = tf.keras.layers.Dropout(rate=drop_rate)
-#
-#     def call(self, x, training=False, return_features=False):
-#         features = OrderedDict()
-#
-#         # B (batch size), N (sequence length), D (embedding dimension),
-#         # H (number of heads)
-#         batch_size, seq_length = tf.unstack(tf.shape(x)[:2])
-#         qkv = self.qkv(x)  # (B, N, 3*D)
-#         qkv = tf.reshape(qkv, (batch_size, seq_length, 3, self.nb_heads, -1))
-#         qkv = tf.transpose(qkv, (2, 0, 3, 1, 4))  # (3, B, H, N, D/H)
-#         q, k, v = qkv[0], qkv[1], qkv[2]
-#
-#         attn = self.scale * tf.linalg.matmul(q, k, transpose_b=True)  # (B, H, N, N)
-#         attn = tf.nn.softmax(attn, axis=-1)  # (B, H, N, N)
-#         attn = self.attn_drop(attn, training=training)
-#         features["attn"] = attn
-#
-#         x = tf.linalg.matmul(attn, v)  # (B, H, N, D/H)
-#         x = tf.transpose(x, (0, 2, 1, 3))  # (B, N, H, D/H)
-#         x = tf.reshape(x, (batch_size, seq_length, -1))  # (B, N, D)
-#
-#         x = self.proj(x)
-#         x = self.proj_drop(x, training=training)
-#         return (x, features) if return_features else x
 
 
 class MViTBlock(object):
@@ -276,7 +211,6 @@ class MViTBlock(object):
         )
 
     def __call__(self, x: tf.Tensor):
-        features = OrderedDict()
         shortcut = x
         x = self.norm1(x)
         x = self.attn(x)
@@ -290,129 +224,6 @@ class MViTBlock(object):
         x = self.drop_path(x)
         x = x + shortcut
         return x
-
-
-# class ViTBlock(tf.keras.layers.Layer):
-#     def __init__(
-#         self,
-#         embed_dim: int,
-#         nb_heads: int,
-#         mlp_ratio: float,
-#         qkv_bias: bool,
-#         drop_rate: float,
-#         attn_drop_rate: float,
-#         drop_path_rate: float,
-#         norm_layer: str,
-#         act_layer: str,
-#         **kwargs,
-#     ):
-#         super().__init__(**kwargs)
-#         self.embed_dim = embed_dim
-#         self.nb_heads = nb_heads
-#         self.mlp_ratio = mlp_ratio
-#         self.qkv_bias = qkv_bias
-#         self.drop_rate = drop_rate
-#         self.attn_drop_rate = attn_drop_rate
-#         self.drop_path_rate = drop_path_rate
-#         self.norm_layer = norm_layer
-#         self.act_layer = act_layer
-#         norm_layer = norm_layer_factory(norm_layer)
-#
-#         self.norm1 = norm_layer(name="norm1")
-#         self.attn = ViTMultiHeadAttention(
-#             embed_dim=embed_dim,
-#             nb_heads=nb_heads,
-#             qkv_bias=qkv_bias,
-#             drop_rate=drop_rate,
-#             attn_drop_rate=attn_drop_rate,
-#             name="attn",
-#         )
-#         self.drop_path = DropPath(drop_prob=drop_path_rate)
-#         self.norm2 = norm_layer(name="norm2")
-#         self.mlp = MLP(
-#             hidden_dim=int(embed_dim * mlp_ratio),
-#             embed_dim=embed_dim,
-#             drop_rate=drop_rate,
-#             act_layer=act_layer,
-#             name="mlp",
-#         )
-#
-#     def call(self, x, training=False, return_features=False):
-#         features = OrderedDict()
-#         shortcut = x
-#         x = self.norm1(x, training=training)
-#         x = self.attn(x, training=training, return_features=return_features)
-#         if return_features:
-#             x, mha_features = x
-#             features["attn"] = mha_features["attn"]
-#         x = self.drop_path(x, training=training)
-#         x = x + shortcut
-#
-#         shortcut = x
-#         x = self.norm2(x, training=training)
-#         x = self.mlp(x, training=training)
-#         x = self.drop_path(x, training=training)
-#         x = x + shortcut
-#         return (x, features) if return_features else x
-
-#
-# class HybridEmbeddings(tf.keras.layers.Layer):
-#     """
-#     CNN feature map embedding
-#     Extract feature map from CNN, flatten, project to embedding dim.
-#     """
-#
-#     def __init__(
-#         self,
-#         in_channels: int,
-#         input_size: tuple,
-#         nb_blocks: tuple,
-#         patch_size: int,
-#         embed_dim: int,
-#         drop_path_rate: float,
-#         **kwargs,
-#     ):
-#         super().__init__(**kwargs)
-#         if nb_blocks == ():
-#             self.backbone = ResNetV2Stem(
-#                 stem_type="same",
-#                 stem_width=64,
-#                 conv_padding="same",
-#                 preact=False,
-#                 act_layer="relu",
-#                 norm_layer="group_norm",
-#                 name="backbone",
-#             )
-#         else:
-#             backbone_cfg = ResNetV2Config(
-#                 nb_classes=0,
-#                 in_channels=in_channels,
-#                 input_size=input_size,
-#                 nb_blocks=nb_blocks,
-#                 preact=False,
-#                 stem_type="same",
-#                 global_pool="",
-#                 conv_padding="same",
-#                 drop_path_rate=drop_path_rate,
-#             )
-#             self.backbone = ResNetV2(backbone_cfg, name="backbone")
-#
-#         self.projection = tf.keras.layers.Conv2D(
-#             filters=embed_dim,
-#             kernel_size=patch_size,
-#             strides=patch_size,
-#             use_bias=True,
-#             name="proj",
-#         )
-#
-#     def call(self, x, training=False, return_shape=False):
-#         x = self.backbone(x, training=training)
-#         x = self.projection(x)
-#
-#         # Change the 2D spatial dimensions to a single temporal dimension.
-#         batch_size, height, width = tf.unstack(tf.shape(x)[:3])
-#         x = tf.reshape(tensor=x, shape=(batch_size, height * width, -1))
-#         return (x, (height, width)) if return_shape else x
 
 
 class Token(tf.keras.layers.Layer):
@@ -459,16 +270,6 @@ def generate_deit_net_keras(cfg: ViTConfig, *args, **kwargs):
             norm_layer="",  # ViT does not use normalization in patch embeddings
             name="patch_embed",
         )
-    # elif cfg.patch_layer == "hybrid_embeddings":
-    #     patch_embed = HybridEmbeddings(
-    #         in_channels=cfg.in_channels,
-    #         input_size=cfg.input_size,
-    #         nb_blocks=cfg.patch_nb_blocks,
-    #         patch_size=cfg.patch_size,
-    #         embed_dim=cfg.embed_dim,
-    #         drop_path_rate=cfg.drop_path_rate,
-    #         name="patch_embed",
-    #     )
     else:
         raise ValueError(f"Unknown patch layer: {cfg.patch_layer}.")
 
@@ -492,8 +293,6 @@ def generate_deit_net_keras(cfg: ViTConfig, *args, **kwargs):
     norm = norm_layer(name="norm")
 
     # Some models have a representation layer on top of cls token
-
-    # pre_logits = None
 
     cls_token_layer = tf.keras.layers.Dense(
         cfg.embed_dim,
@@ -563,8 +362,6 @@ def generate_deit_net_keras(cfg: ViTConfig, *args, **kwargs):
         # Here we diverge from timm and return both outputs as one tensor. That way
         # all models always have one output by default
         x = x[:, :2]
-    # elif cfg.representation_size:
-    #     x = pre_logits(x[:, 0])
     else:
         x = x[:, 0]
 
@@ -573,7 +370,6 @@ def generate_deit_net_keras(cfg: ViTConfig, *args, **kwargs):
     else:
         y = head(x[:, 0])
         y_dist = head_dist(x[:, 1])
-        # x = tf.stack((y, y_dist), axis=1)
 
         y_avg = (y + y_dist) / 2
 
@@ -581,21 +377,6 @@ def generate_deit_net_keras(cfg: ViTConfig, *args, **kwargs):
 
     model = tf.keras.Model(inputs=x_in, outputs=x)
     return model
-
-
-# def call(self, x, training=False, return_features=False):
-#     features = {}
-#     x = self.forward_features(x, training, return_features)
-#     if return_features:
-#         x, features = x
-#     if not self.cfg.distilled:
-#         x = self.head(x)
-#     else:
-#         y = self.head(x[:, 0])
-#         y_dist = self.head_dist(x[:, 1])
-#         x = tf.stack((y, y_dist), axis=1)
-#     features["logits"] = x
-#     return (x, features) if return_features else x
 
 
 def deit_base_distilled_patch16_224():

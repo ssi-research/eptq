@@ -7,8 +7,6 @@ import re
 import numpy
 from tensorflow.python.keras import backend as K
 
-from models.tfimm_modified.resnet.resnet_modified import resnet18, resnet50
-
 logger = logging.getLogger(__name__)
 
 
@@ -86,12 +84,6 @@ def load_pytorch_weights_in_tf2_model(
         tf_model, pt_state_dict, tf_inputs=None, allow_missing_keys=False
 ):
     """Load pytorch state_dict in a TF 2.0 model."""
-    # if tf_inputs is None:
-    #     tf_inputs = tf_model.dummy_inputs
-    #
-    # if tf_inputs is not None:
-    #     tf_model(tf_inputs, training=False)  # Make sure model is built
-
     # Adapt pt state dict. TF "beta" -> PT "bias"
     # But some models have PT weight "beta" (ResMLP affine layer)
     # To fix that we need to change PT name to "bias" first...
@@ -205,14 +197,3 @@ def load_pytorch_weights_in_tf2_model(
             f"All the weights of {tf_model.__class__.__name__} were initialized from "
             f"the PyTorch model.\n"
         )
-
-
-if __name__ == '__main__':
-    model_fn, cfg = mobilenet_v2_100_m()
-    # model_fn, cfg = resnet18()
-    # model_fn, cfg = resnet50()
-    model = model_fn(cfg)
-
-    pt_model = timm.create_model(cfg.url.split("]")[-1], pretrained=True)
-    pt_state_dict = pt_model.state_dict()
-    load_pytorch_weights_in_tf2_model(model, pt_state_dict)

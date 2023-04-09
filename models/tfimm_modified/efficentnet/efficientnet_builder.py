@@ -12,10 +12,8 @@ from typing import List
 from models.tfimm_modified.efficentnet.efficientnet_blocks import (
     BlockArgs,
     ConvBnAct,
-    # DepthwiseSeparableConv,
     MDepthwiseSeparableConv,
     EdgeResidual,
-    # InvertedResidual,
     MInvertedResidual
 )
 

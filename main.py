@@ -20,6 +20,7 @@ FILE_TIME_STAMP = datetime.now().strftime("%d-%b-%Y__%H:%M:%S")
 #  3) Fix dataset path
 #  4) Update methods comment and typehints
 #  5) Add help messages to program arguments
+#  6) Models copyright message
 
 
 def argument_handler():

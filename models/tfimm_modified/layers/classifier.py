@@ -15,7 +15,6 @@ class ClassifierHead(object):
         pool_type: str = "avg",
         drop_rate: float = 0.0,
         use_conv: bool = False,
-        name: str = "head",
         **kwargs,
     ):
 

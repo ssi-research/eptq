@@ -2,7 +2,7 @@
 Common layers shared between transformer architectures.
 Copyright 2021 Martins Bruveris
 """
-from typing import Optional, Tuple
+from typing import Optional
 
 import tensorflow as tf
 
@@ -94,7 +94,6 @@ class PatchEmbeddings(object):
 
         if self.flatten:
             # Change the 2D spatial dimensions to a single temporal dimension.
-            # x = tf.reshape(tensor=x, shape=(batch_size, height * width, -1))
             x = tf.keras.layers.Reshape(target_shape=(-1, self.embed_dim))(x)
 
         x = self.norm(x)
