@@ -16,10 +16,9 @@ FILE_TIME_STAMP = datetime.now().strftime("%d-%b-%Y__%H:%M:%S")
 
 # TODO:
 #  1) Remove/update analysis code and save result
-#  2) Fix dataset path
+#  2) Fix dataset path?
 #  3) Update methods comment and typehints
-#  4) Add help messages to program arguments
-#  5) Models copyright message
+#  4) What to do with timm models copyright message (copied comment in files)
 #  6) Add Readme with instructions how to run the basic experiments
 #  7) Update requirements
 
@@ -219,13 +218,15 @@ def main():
     # Run accuracy evaluation for the quantized model
     #################################################
     quant_result = model_cfg.evaluation_function(quantized_model, val_dataset)
-    wandb.config.update({"mixed_precision_cfg_final": quantization_info.mixed_precision_cfg,
-                         "bit-width-mapping": bit_width_mapping})
-    wandb.log({"quantized_results": quant_result * 100,
-                 "float_results": float_result * 100,
-                 **quantization_config.kpi2dict(target_kpi),
-                 **quantization_config.kpi2dict(quantization_info.final_kpi, "final"),
-                 **quantization_config.kpi2dict(full_kpi, "max_kp")})
+
+    if args.wandb:
+        wandb.config.update({"mixed_precision_cfg_final": quantization_info.mixed_precision_cfg,
+                             "bit-width-mapping": bit_width_mapping})
+        wandb.log({"quantized_results": quant_result * 100,
+                     "float_results": float_result * 100,
+                     **quantization_config.kpi2dict(target_kpi),
+                     **quantization_config.kpi2dict(quantization_info.final_kpi, "final"),
+                     **quantization_config.kpi2dict(full_kpi, "max_kp")})
 
     print(f'Accuracy of quantized model: {quant_result * 100} (float model: {float_result * 100})')
 
