@@ -15,12 +15,15 @@ FILE_TIME_STAMP = datetime.now().strftime("%d-%b-%Y__%H:%M:%S")
 
 
 # TODO:
-#  1) Remove/update analysis code and save result
-#  2) Fix dataset path?
-#  3) Update methods comment and typehints
-#  4) What to do with timm models copyright message (copied comment in files)
+#  1) Remove/update analysis code and save result - Hai
+#  2) Fix dataset path? - arguments in main
+#  3) Update methods comment and typehints - ?
+#  4) What to do with timm models copyright message (copied comment in files) - like what Hai sent (in all copied files)
 #  6) Add Readme with instructions how to run the basic experiments
-#  7) Update requirements
+#   pip install requirements,
+#   run (default with 4, 8)
+#   mention that requires MCT ver 1.9 (link to github) [add model-compression-toolkit=1.9 to requirements]
+#  7) Update requirements - after release 1.9, create new env, install requirements, try and fix requirements until it works
 
 
 def argument_handler():
