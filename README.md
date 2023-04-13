@@ -1,5 +1,4 @@
-# EPTQ: Enhanced Post-Training Quantization via Label-Free Hessian
-
+# EPTQ
 Keras implementation of EPTQ.
 EPTQ is a post-training quantization method for CV networks.
 It uses the network's loss function Hessian trace to preform an adaptive optimization for the rounding error of the 
