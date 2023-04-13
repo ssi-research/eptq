@@ -43,6 +43,7 @@ def build_gptq_config(args, n_iter):
                                         optimizer_bias=optimizer_bias,
                                         optimizer_quantization_parameter=optimizer_quantization_param,
                                         regularization_factor=args.reg_factor,
+                                        use_hessian_based_weights=not args.disable_hessian_weights,
                                         hessian_weights_config=hessians_weights_config,
                                         gptq_quantizer_params_override={QUANT_PARAM_LEARNING_STR:
                                                                             args.quantization_parameters_learning})

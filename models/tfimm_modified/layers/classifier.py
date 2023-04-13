@@ -1,8 +1,10 @@
 """
-Pooling and classifier head.
-Ported to TF from timm/models/layers/classifier.py by Ross Wightman.
-Copyright 2021 Martins Bruveris
+ This file is copied from https://github.com/martinsbruveris/tensorflow-image-models
+ and modified for this project needs.
+
+ The Licence of the tensorflow-image-models project is shown in: https://github.com/martinsbruveris/tensorflow-image-models/blob/main/LICENSE
 """
+
 import tensorflow as tf
 
 

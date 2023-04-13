@@ -1,12 +1,12 @@
 """
-TensorFlow implementation of the Visual Transformer
-Based on timm/models/visual_transformer.py by Ross Wightman.
-Based on transformers/models/vit by HuggingFace
-Copyright 2021 Martins Bruveris
+ This file is copied from https://github.com/martinsbruveris/tensorflow-image-models
+ and modified for this project needs.
+
+ The Licence of the tensorflow-image-models project is shown in: https://github.com/martinsbruveris/tensorflow-image-models/blob/main/LICENSE
 """
-from collections import OrderedDict
+
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 import timm
 
 import tensorflow as tf

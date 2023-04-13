@@ -1,3 +1,10 @@
+"""
+ This file is copied from https://github.com/martinsbruveris/tensorflow-image-models
+ and modified for this project needs.
+
+ The Licence of the tensorflow-image-models project is shown in: https://github.com/martinsbruveris/tensorflow-image-models/blob/main/LICENSE
+"""
+
 from dataclasses import dataclass
 from typing import Optional, Union, Callable
 

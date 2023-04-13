@@ -1,34 +1,13 @@
 """
-TensorFlow implementation of ResNets
-Based on timm/models/resnet.py by Ross Wightman.
-It includes the following models:
-- Resnets from the PyTorch model hub
-- ResNets trained by Ross Wightman
-- Models pretrained on weakly-supervised data, finetuned on ImageNet
-  Paper: Exploring the Limits of Weakly Supervised Pretraining
-  Link: https://arxiv.org/abs/1805.00932
-- Models pretrained in semi-supervised way on YFCC100M, finetuned on ImageNet
-  Paper: Billion-scale Semi-Supervised Learning for Image Classification
-  Link: https://arxiv.org/abs/1905.00546
-- ResNets with ECA layers
-  Paper: ECA-Net: Efficient Channel Attention for Deep Convolutional Neural Networks
-  Link: https://arxiv.org/pdf/1910.03151.pdf
-- ResNets with anti-aliasing layers
-  Paper: Making Convolutional Networks Shift-Invariant Again
-  Link: https://arxiv.org/pdf/1904.11486.pdf
-- Models from the "Revisiting ResNets" paper
-  Paper: Revisiting ResNets
-  Link: https://arxiv.org/abs/2103.07579
-- ResNets with a squeeze-and-excitation layer
-  Paper: Squeeze-and-Excitation Networks
-  Link: https://arxiv.org/abs/1709.01507
-Copyright 2021 Martins Bruveris
-Copyright 2021 Ross Wightman
+ This file is copied from https://github.com/martinsbruveris/tensorflow-image-models
+ and modified for this project needs.
+
+ The Licence of the tensorflow-image-models project is shown in: https://github.com/martinsbruveris/tensorflow-image-models/blob/main/LICENSE
 """
 
 import math
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 import tensorflow as tf
 

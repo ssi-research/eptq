@@ -1,21 +1,10 @@
 """
-MLP-Mixer, ResMLP, and gMLP models
-This implementation is ported from the timm, which is based on the original
-implementation from the MLP-Mixer paper.
-Official JAX impl:
-https://github.com/google-research/vision_transformer/blob/linen/vit_jax/models_mixer.py
-Paper: MLP-Mixer: An all-MLP Architecture for Vision
-Arxiv: https://arxiv.org/abs/2105.01601
-Also supporting ResMLP, and a preliminary implementation of gMLP
-Code: https://github.com/facebookresearch/deit
-Paper: ResMLP: Feedforward networks for image classification...
-Arxiv: https://arxiv.org/abs/2105.03404
-Paper: Pay Attention to MLPs
-Arxiv: https://arxiv.org/abs/2105.08050
-A thank you to paper authors for releasing code and weights.
-Copyright 2021 Martins Bruveris
-Copyright 2021 Ross Wightman
+ This file is copied from https://github.com/martinsbruveris/tensorflow-image-models
+ and modified for this project needs.
+
+ The Licence of the tensorflow-image-models project is shown in: https://github.com/martinsbruveris/tensorflow-image-models/blob/main/LICENSE
 """
+
 from dataclasses import dataclass
 from typing import Tuple
 

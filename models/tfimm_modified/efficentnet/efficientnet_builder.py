@@ -1,9 +1,8 @@
-""" EfficientNet, MobileNetV3, etc Builder
+"""
+ This file is copied from https://github.com/martinsbruveris/tensorflow-image-models
+ and modified for this project needs.
 
-Assembles EfficieNet and related network feature blocks from string definitions.
-Handles stride, dilation calculations, and selects feature extraction points.
-
-Hacked together by / Copyright 2019, Ross Wightman
+ The Licence of the tensorflow-image-models project is shown in: https://github.com/martinsbruveris/tensorflow-image-models/blob/main/LICENSE
 """
 
 from collections import OrderedDict

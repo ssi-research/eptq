@@ -1,8 +1,10 @@
 """
-Implementations of various drop layers. For now only DropPath (stochastic depth).
-Copyright 2021 Martins Bruveris
-Copyright 2020 Ross Wightman
+ This file is copied from https://github.com/martinsbruveris/tensorflow-image-models
+ and modified for this project needs.
+
+ The Licence of the tensorflow-image-models project is shown in: https://github.com/martinsbruveris/tensorflow-image-models/blob/main/LICENSE
 """
+
 import tensorflow as tf
 
 

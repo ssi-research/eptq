@@ -1,7 +1,10 @@
 """
-Common layers shared between transformer architectures.
-Copyright 2021 Martins Bruveris
+ This file is copied from https://github.com/martinsbruveris/tensorflow-image-models
+ and modified for this project needs.
+
+ The Licence of the tensorflow-image-models project is shown in: https://github.com/martinsbruveris/tensorflow-image-models/blob/main/LICENSE
 """
+
 from typing import Optional
 
 import tensorflow as tf

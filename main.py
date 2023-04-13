@@ -3,7 +3,6 @@ import sys
 import argparse
 import wandb
 import utils
-from constants import VAL_DIR, TRAIN_DIR
 
 from models.model_dictionary import model_dictionary
 import model_compression_toolkit as mct
@@ -16,14 +15,12 @@ FILE_TIME_STAMP = datetime.now().strftime("%d-%b-%Y__%H:%M:%S")
 
 # TODO:
 #  1) Remove/update analysis code and save result - Hai
-#  2) Fix dataset path? - arguments in main
-#  3) Update methods comment and typehints - ?
-#  4) What to do with timm models copyright message (copied comment in files) - like what Hai sent (in all copied files)
-#  6) Add Readme with instructions how to run the basic experiments
+#  2) Update methods comment and typehints - ?
+#  3) Add Readme with instructions how to run the basic experiments
 #   pip install requirements,
 #   run (default with 4, 8)
 #   mention that requires MCT ver 1.9 (link to github) [add model-compression-toolkit=1.9 to requirements]
-#  7) Update requirements - after release 1.9, create new env, install requirements, try and fix requirements until it works
+#  4) Update requirements - after release 1.9, create new env, install requirements, try and fix requirements until it works
 
 
 def argument_handler():
@@ -42,8 +39,8 @@ def argument_handler():
     #####################################################################
     # Dataset Config
     #####################################################################
-    parser.add_argument('--val_dataset_folder', type=str, default=VAL_DIR)
-    parser.add_argument('--representative_dataset_folder', type=str, default=TRAIN_DIR)
+    parser.add_argument('--train_data_path', type=str, required=True)
+    parser.add_argument('--val_data_path', type=str, required=True)
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--image_size', type=int, default=224)
     parser.add_argument('--n_images', type=int, default=1024)
@@ -79,10 +76,10 @@ def argument_handler():
                         help='Number of samples in distance matrix for distance computation')
 
     #####################################################################
-    # Gumbel Rounding Config
+    # EPTQ Config
     #####################################################################
-    parser.add_argument('--eptq', action='store_true', default=False, help='Enable EPTQ quantization')
-    parser.add_argument('--eptq_num_calibration_iter', type=int, default=20000)
+    parser.add_argument('--disable_eptq', action='store_true', default=False, help='Enable EPTQ quantization')
+    parser.add_argument('--eptq_num_calibration_iter', type=int, default=80000)
     parser.add_argument('--bias_learning', action='store_false', default=True,
                         help='Whether to enable bias learning.')
     parser.add_argument('--quantization_parameters_learning', action='store_false', default=True,
@@ -98,7 +95,7 @@ def argument_handler():
     # Loss
     parser.add_argument('--norm_loss', action='store_true', default=False,
                         help='Whether to normalize the loss value in GPTQ training.')
-    parser.add_argument('--hessian_weights', action='store_true', default=False,
+    parser.add_argument('--disable_hessian_weights', action='store_true', default=False,
                         help='Whether to use the Hessian-based weights in the optimization loss function computation.')
     parser.add_argument('--hessian_weights_num_samples', type=int, default=16,
                         help='Number of samples to be used for Hessian-based weights computation.')
@@ -131,7 +128,7 @@ def main():
     group = None
     name = None
     if args.group is not None:
-        group = f"{args.model_name}_{args.eptq}_{args.mixed_precision}_{args.group}"
+        group = f"{args.model_name}_{not args.disable_eptq}_{args.mixed_precision}_{args.group}"
         name = f"{args.model_name}_{FILE_TIME_STAMP}"
     if args.wandb:
         wandb.init(project=PROJECT_NAME, group=group, name=name)
@@ -176,7 +173,7 @@ def main():
     # Floating-point accuracy
     #################################################
     val_dataset = model_cfg.get_validation_dataset(
-        dir_path=args.val_dataset_folder,
+        dir_path=args.val_data_path,
         batch_size=args.batch_size,
         image_size=(args.image_size, args.image_size))
     float_result = get_float_result(args, model_cfg, model, val_dataset)
@@ -186,7 +183,7 @@ def main():
     #################################################
     n_iter = math.ceil(args.n_images // args.batch_size)
     representative_data_gen = model_cfg.get_representative_dataset(
-        representative_dataset_folder=args.representative_dataset_folder,
+        representative_dataset_folder=args.train_data_path,
         n_iter=n_iter,
         batch_size=args.batch_size,
         n_images=args.n_images,
@@ -199,7 +196,7 @@ def main():
                                                                 core_config,
                                                                 target_platform_cap)
 
-    if args.eptq:
+    if not args.disable_eptq:
         gptq_config = quantization_config.build_gptq_config(args, n_iter)
 
         quantized_model, quantization_info = \
