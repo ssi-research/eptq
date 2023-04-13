@@ -16,10 +16,8 @@ FILE_TIME_STAMP = datetime.now().strftime("%d-%b-%Y__%H:%M:%S")
 # TODO:
 #  1) Remove/update analysis code and save result - Hai
 #  2) Update methods comment and typehints - ?
-#  3) Add Readme with instructions how to run the basic experiments
-#   pip install requirements,
-#   run (default with 4, 8)
-#   mention that requires MCT ver 1.9 (link to github) [add model-compression-toolkit=1.9 to requirements]
+#  3) ReadMe - update "from ICML" if accepted and add arxiv citation.
+#       update examples expected results.
 #  4) Update requirements - after release 1.9, create new env, install requirements, try and fix requirements until it works
 
 
