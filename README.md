@@ -47,11 +47,10 @@ For faster execution you can reduce the number of optimization steps, using the 
 `--eptq_num_calibration_iter` (80K by default). This might result in a small reduction in the final accuracy results.
 
 ### Mixed precision quantization
-We also enable mixed precision quantization, in which different weights or activation tensors can be quantized 
-with other bit-width, under pre-defined memory restrictions 
-(weights compression, activation compression, or total compression).
+We also enable mixed precision quantization, in which different weights tensors can be quantized 
+with other bit-width, under pre-defined weights memory restrictions (total weights compression).
 
-`python main.py -m regnetx_006 --mixed_precision --total_cr 8 --train_data_path <path_to_training_dataset> 
+`python main.py -m regnetx_006 --mixed_precision --weights_cr 8 --train_data_path <path_to_training_dataset> 
 --val_data_path <path_to_validation_dataset>`
 
 This example would execute EPTQ via MCT to quantize RegNet-600MF with the bit-width options of 2, 4, and 8 bits for 
