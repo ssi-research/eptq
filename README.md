@@ -4,7 +4,9 @@ EPTQ is a post-training quantization method for CV networks.
 It uses the network's loss function Hessian trace to perform an adaptive optimization for the rounding error of the 
 quantized parameters, without needing a labeled dataset.
 
-<img src="docsrc/images/opt_compare.svg" width="10000">
+<p align="center">
+  <img src="images/EPTQ.svg" width="800">
+</p>
 
 ## Models
 
